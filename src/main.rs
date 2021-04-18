@@ -177,13 +177,13 @@ fn calculate(p: &mut Parameters) {
             } else {
                 p.cpresults.set_label("Not Significant")
             }
-        }else{
+        } else {
             p.corr.set_value("");
             p.cp.set_value("");
             p.cresults.set_label("");
             p.cpresults.set_label("");
         }
-    }else{
+    } else {
         dmeans = unpaired_data(&a_v, &b_v, iterations);
 
         p.corr.set_value("");
@@ -204,7 +204,7 @@ fn calculate(p: &mut Parameters) {
         let z = z_from_cl(1.0 - clevel);
         let u = mean_d + z * sd;
         let l = mean_d - z * sd;
-        let pv = p_from_ci(l,u,mean_d,1.0 - clevel);
+        let pv = p_from_ci(l, u, mean_d, 1.0 - clevel);
 
         p.mp.set_value(&science_pretty_format(pv, 4));
 
@@ -223,12 +223,12 @@ fn calculate(p: &mut Parameters) {
                 p.results.set_label("H0 = False   A < B");
             }
         };
-    }else{
+    } else {
         // One Tailed
         let z = z_from_cl(1.0 - clevel * 2.0);
         let u = mean_d + z * sd;
         let l = mean_d - z * sd;
-        let pv = p_from_ci(l,u,mean_d,1.0 - clevel);
+        let pv = p_from_ci(l, u, mean_d, 1.0 - clevel);
 
         if mean_a > mean_b {
             p.ci_low.set_value("");
@@ -243,7 +243,7 @@ fn calculate(p: &mut Parameters) {
             } else {
                 p.results.set_label("H0 = False   A > B");
             }
-        }else{
+        } else {
             p.ci_low.set_value(&science_pretty_format(l, 6));
             p.mean_a.set_value(&science_pretty_format(mean_a, 6));
             p.mean_b.set_value(&science_pretty_format(mean_b, 6));
@@ -530,33 +530,33 @@ fn erf_inv(x: f64) -> f64 {
     let mut w: f64;
     let mut p: f64;
 
-    w = -((1.0-x)*(1.0+x)).ln();
+    w = -((1.0 - x) * (1.0 + x)).ln();
 
     if w < 5.000000 {
         w = w - 2.500000;
         p = 2.81022636e-08;
-        p = 3.43273939e-07 + p*w;
-        p = -3.5233877e-06 + p*w;
-        p = -4.39150654e-06 + p*w;
-        p = 0.00021858087 + p*w;
-        p = -0.00125372503 + p*w;
-        p = -0.00417768164 + p*w;
-        p = 0.246640727 + p*w;
-        p = 1.50140941 + p*w;
-    }else{
+        p = 3.43273939e-07 + p * w;
+        p = -3.5233877e-06 + p * w;
+        p = -4.39150654e-06 + p * w;
+        p = 0.00021858087 + p * w;
+        p = -0.00125372503 + p * w;
+        p = -0.00417768164 + p * w;
+        p = 0.246640727 + p * w;
+        p = 1.50140941 + p * w;
+    } else {
         w = w.sqrt() - 3.000000;
         p = -0.000200214257;
-        p = 0.000100950558 + p*w;
-        p = 0.00134934322 + p*w;
-        p = -0.00367342844 + p*w;
-        p = 0.00573950773 + p*w;
-        p = -0.0076224613 + p*w;
-        p = 0.00943887047 + p*w;
-        p = 1.00167406 + p*w;
-        p = 2.83297682 + p*w;
+        p = 0.000100950558 + p * w;
+        p = 0.00134934322 + p * w;
+        p = -0.00367342844 + p * w;
+        p = 0.00573950773 + p * w;
+        p = -0.0076224613 + p * w;
+        p = 0.00943887047 + p * w;
+        p = 1.00167406 + p * w;
+        p = 2.83297682 + p * w;
     }
 
-    p*x
+    p * x
 }
 
 // Calculate Z from Confidence Level
@@ -572,36 +572,63 @@ fn p_from_z(z: f64) -> f64 {
 
     if z == 0.0 {
         x = 0.0;
-    }else{
+    } else {
         y = 0.5 * z.abs();
 
         if y >= 3.0 {
             x = 1.0;
-        }else{
+        } else {
             if y < 1.0 {
                 w = y * y;
-                x = ((((((((0.000124818987 * w
-                            - 0.001075204047) * w + 0.005198775019) * w
-                        - 0.019198292004) * w + 0.059054035642) * w
-                        - 0.151968751364) * w + 0.319152932694) * w
-                    - 0.531923007300) * w + 0.797884560593) * y * 2.0;
-            }else{
+                x = ((((((((0.000124818987 * w - 0.001075204047) * w + 0.005198775019) * w
+                    - 0.019198292004)
+                    * w
+                    + 0.059054035642)
+                    * w
+                    - 0.151968751364)
+                    * w
+                    + 0.319152932694)
+                    * w
+                    - 0.531923007300)
+                    * w
+                    + 0.797884560593)
+                    * y
+                    * 2.0;
+            } else {
                 y -= 2.0;
-                x = (((((((((((((-0.000045255659 * y
-                                + 0.000152529290) * y - 0.000019538132) * y
-                            - 0.000676904986) * y + 0.001390604284) * y
-                            - 0.000794620820) * y - 0.002034254874) * y
-                        + 0.006549791214) * y - 0.010557625006) * y
-                        + 0.011630447319) * y - 0.009279453341) * y
-                    + 0.005353579108) * y - 0.002141268741) * y
-                    + 0.000535310849) * y + 0.999936657524;
+                x = (((((((((((((-0.000045255659 * y + 0.000152529290) * y
+                    - 0.000019538132)
+                    * y
+                    - 0.000676904986)
+                    * y
+                    + 0.001390604284)
+                    * y
+                    - 0.000794620820)
+                    * y
+                    - 0.002034254874)
+                    * y
+                    + 0.006549791214)
+                    * y
+                    - 0.010557625006)
+                    * y
+                    + 0.011630447319)
+                    * y
+                    - 0.009279453341)
+                    * y
+                    + 0.005353579108)
+                    * y
+                    - 0.002141268741)
+                    * y
+                    + 0.000535310849)
+                    * y
+                    + 0.999936657524;
             }
         }
     }
 
     if z > 0.0 {
         return (x + 1.0) * 0.5;
-    }else{
+    } else {
         return (1.0 - x) * 0.5;
     }
 }
