@@ -2,7 +2,7 @@
 use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, output::*, window::*};
 use rand::Rng;
 
-#[derive(Debug)]
+#[derive(Clone,Debug)]
 // Define a struct for the form fields
 struct Parameters {
     data_a: MultilineInput,
@@ -34,7 +34,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Mean Difference & Spearman Calculator v2.0",
+        "Bootstrap Mean Difference & Spearman Calculator v2.1",
     );
 
     // Fill the form structure
@@ -76,9 +76,16 @@ fn main() {
     parameters.cinterval.set_value("95");
     parameters.iterations.set_value("10");
 
+    // Clone the parameters to use for the clear function
+    let mut p2 = parameters.clone();
+
     // Calculate button
     let mut calculate_button = Button::new(130, 450, 200, 57, "Calculate");
     calculate_button.set_callback(move || calculate(&mut parameters));
+
+    // clear button
+    let mut clear_button = Button::new(350, 450, 100, 57, "Clear");
+    clear_button.set_callback(move || clear(&mut p2));
 
     // Show the window
     wind.end();
@@ -87,6 +94,26 @@ fn main() {
     // Enter main loop
     app.run().unwrap();
 }
+
+fn clear(p: &mut Parameters) {
+    p.mean_a.set_value("");
+    p.mean_b.set_value("");
+    p.mean_diff.set_value("");
+    p.mp.set_value("");
+    p.data_a.set_value("");
+    p.data_b.set_value("");
+    p.corr.set_value("");
+    p.cp.set_value("");
+    p.ci_low.set_value("");
+    p.ci_high.set_value("");
+    p.results.set_label("");
+
+    p.corr.set_value("");
+    p.cp.set_value("");
+    p.cresults.set_label("");
+    p.cpresults.set_label("");
+}
+
 
 // Handle Calculate button
 fn calculate(p: &mut Parameters) {
