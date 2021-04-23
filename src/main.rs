@@ -1,12 +1,12 @@
 #![windows_subsystem = "windows"]
-use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, output::*, window::*};
+use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, output::*, window::*, text::*,};
 use rand::Rng;
 
 #[derive(Clone,Debug)]
 // Define a struct for the form fields
 struct Parameters {
-    data_a: MultilineInput,
-    data_b: MultilineInput,
+    data_a: TextEditor,
+    data_b: TextEditor,
     paired_data: CheckButton,
     one_tailed: RadioRoundButton,
     two_tailed: RadioRoundButton,
@@ -39,8 +39,8 @@ fn main() {
 
     // Fill the form structure
     let mut parameters = Parameters {
-        data_a: MultilineInput::new(16, 30, 204, 404, ""),
-        data_b: MultilineInput::new(247, 30, 204, 404, ""),
+        data_a: TextEditor::new(16, 30, 204, 404, ""),
+        data_b: TextEditor::new(247, 30, 204, 404, ""),
         paired_data: CheckButton::new(556, 26, 105, 21, "Paired or Corr Data"),
         one_tailed: RadioRoundButton::new(558, 54, 99, 21, "One Tailed"),
         two_tailed: RadioRoundButton::new(558, 81, 99, 21, "Two Tailed"),
@@ -59,11 +59,25 @@ fn main() {
         cpresults: Frame::new(620, 489, 130, 17, ""),
     };
 
+    // Text buffers for our inputs
+    let buf_a = TextBuffer::default();
+    let buf_b = TextBuffer::default();
+
     // Data Labels for Main Input windows
     Frame::new(16, 10, 51, 17, "Data A");
     Frame::new(255, 10, 51, 17, "Data B");
     Frame::new(610, 148, 20, 22, "K");
     Frame::new(610, 119, 20, 22, "%");
+
+    // Format and initialize our main input windows
+    parameters.data_a.set_scrollbar_size(15);
+    parameters.data_b.set_scrollbar_size(15);
+
+    parameters.data_a.set_buffer(Some(buf_a));
+    parameters.data_b.set_buffer(Some(buf_b));
+    parameters.data_a.set_tab_nav(true);
+    parameters.data_b.set_tab_nav(true);
+
 
     // Group for radio buttons
     let mut group_tailed = Group::new(555, 50, 100, 50, "");
@@ -100,8 +114,8 @@ fn clear(p: &mut Parameters) {
     p.mean_b.set_value("");
     p.mean_diff.set_value("");
     p.mp.set_value("");
-    p.data_a.set_value("");
-    p.data_b.set_value("");
+    p.data_a.buffer().unwrap().set_text("");
+    p.data_b.buffer().unwrap().set_text("");
     p.corr.set_value("");
     p.cp.set_value("");
     p.ci_low.set_value("");
@@ -121,8 +135,8 @@ fn calculate(p: &mut Parameters) {
     let dmeans: Vec<f64>;
 
     // Get the CSV data out of the two data fields
-    let a_v: Vec<f64> = csv_split(&p.data_a.value());
-    let b_v: Vec<f64> = csv_split(&p.data_b.value());
+    let a_v: Vec<f64> = csv_split(&p.data_a.buffer().unwrap().text());
+    let b_v: Vec<f64> = csv_split(&p.data_b.buffer().unwrap().text());
 
     if a_v.len() < 1 {
         alert(368, 265, "Data A must have a least one value");
