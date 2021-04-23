@@ -34,7 +34,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Mean Difference & Spearman Calculator v2.1",
+        "Bootstrap Mean Difference & Spearman Calculator v2.15",
     );
 
     // Fill the form structure
@@ -72,7 +72,8 @@ fn main() {
     // Format and initialize our main input windows
     parameters.data_a.set_scrollbar_size(15);
     parameters.data_b.set_scrollbar_size(15);
-
+    parameters.data_a.set_cursor_style(TextCursor::Simple);
+    parameters.data_b.set_cursor_style(TextCursor::Simple);
     parameters.data_a.set_buffer(Some(buf_a));
     parameters.data_b.set_buffer(Some(buf_b));
     parameters.data_a.set_tab_nav(true);
