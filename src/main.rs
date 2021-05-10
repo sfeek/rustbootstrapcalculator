@@ -1,5 +1,5 @@
 #![windows_subsystem = "windows"]
-use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, output::*, window::*, text::*,};
+use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, window::*, text::*,};
 use rand::Rng;
 
 #[derive(Clone,Debug)]
@@ -7,22 +7,19 @@ use rand::Rng;
 struct Parameters {
     data_a: TextEditor,
     data_b: TextEditor,
+    output: TextDisplay,
     paired_data: CheckButton,
     one_tailed: RadioRoundButton,
     two_tailed: RadioRoundButton,
     cinterval: FloatInput,
     iterations: IntInput,
-    mean_a: Output,
-    mean_b: Output,
-    ci_low: Output,
-    ci_high: Output,
-    mean_diff: Output,
-    mp: Output,
-    corr: Output,
-    results: Frame,
-    cresults: Frame,
-    cp: Output,
-    cpresults: Frame,
+}
+
+#[derive(Clone,Debug)]
+// Define a struct for our dmeans and dsds 
+struct Sdmeanresults {
+    mean: f64,
+    sd: f64,
 }
 
 fn main() {
@@ -34,7 +31,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Mean Difference & Spearman Calculator v2.15",
+        "Bootstrap Mean Difference & Spearman Calculator v2.5",
     );
 
     // Fill the form structure
@@ -46,22 +43,14 @@ fn main() {
         two_tailed: RadioRoundButton::new(558, 81, 99, 21, "Two Tailed"),
         cinterval: FloatInput::new(558, 119, 54, 22, "CL"),
         iterations: IntInput::new(558, 148, 54, 22, "Iterations"),
-        mean_a: Output::new(558, 209, 132, 22, "Mean A"),
-        mean_b: Output::new(558, 241, 132, 22, "Mean B"),
-        ci_low: Output::new(558, 298, 132, 22, "Low Diff"),
-        ci_high: Output::new(558, 354, 132, 22, "High Diff"),
-        mean_diff: Output::new(558, 326, 132, 22, "Mean Diff"),
-        mp: Output::new(558, 383, 75, 22, "p-Value"),
-        results: Frame::new(519, 412, 130, 17, ""),
-        corr: Output::new(555, 455, 75, 22, "Spearman ρ"),
-        cresults: Frame::new(620, 458, 130, 17, ""),
-        cp: Output::new(555, 486, 75, 22, "p-Value"),
-        cpresults: Frame::new(620, 489, 130, 17, ""),
+        output: TextDisplay::new(480, 200, 225, 300, ""),
     };
 
-    // Text buffers for our inputs
+    // Text buffers for our inputs and output
     let buf_a = TextBuffer::default();
     let buf_b = TextBuffer::default();
+    let buf_out = TextBuffer::default();
+
 
     // Data Labels for Main Input windows
     Frame::new(16, 10, 51, 17, "Data A");
@@ -79,6 +68,8 @@ fn main() {
     parameters.data_a.set_tab_nav(true);
     parameters.data_b.set_tab_nav(true);
 
+    // Set output buffer
+    parameters.output.set_buffer(Some(buf_out));
 
     // Group for radio buttons
     let mut group_tailed = Group::new(555, 50, 100, 50, "");
@@ -111,29 +102,18 @@ fn main() {
 }
 
 fn clear(p: &mut Parameters) {
-    p.mean_a.set_value("");
-    p.mean_b.set_value("");
-    p.mean_diff.set_value("");
-    p.mp.set_value("");
+    p.output.buffer().unwrap().set_text("");
     p.data_a.buffer().unwrap().set_text("");
     p.data_b.buffer().unwrap().set_text("");
-    p.corr.set_value("");
-    p.cp.set_value("");
-    p.ci_low.set_value("");
-    p.ci_high.set_value("");
-    p.results.set_label("");
-
-    p.corr.set_value("");
-    p.cp.set_value("");
-    p.cresults.set_label("");
-    p.cpresults.set_label("");
 }
 
 
 // Handle Calculate button
 fn calculate(p: &mut Parameters) {
-    // Spot for difference of means
-    let dmeans: Vec<f64>;
+    let sdmeanresults: Sdmeanresults;
+
+    // Output String
+    let mut out: String = String::from("");
 
     // Get the CSV data out of the two data fields
     let a_v: Vec<f64> = csv_split(&p.data_a.buffer().unwrap().text());
@@ -179,19 +159,152 @@ fn calculate(p: &mut Parameters) {
 
     // Check for paired or unpaired data
     if p.paired_data.is_checked() {
-        // For paired or correlation data make sure both columns have the same number of elements
+        // For paired data make sure both columns have the same number of elements
         if a_v.len() != b_v.len() {
             alert(368, 265, "Data Fields Must Have Same Count for Paired Data");
             return;
         }
 
-        dmeans = paired_data(&a_v, &b_v, iterations);
+        sdmeanresults = paired_data(&a_v, &b_v, iterations);
+    } else {
+        sdmeanresults = unpaired_data(&a_v, &b_v, iterations);
+    };    
 
+    // Calculate stats for the data
+    let mean_a = mean(&a_v);
+    let mean_b = mean(&b_v);
+    let mean_d = mean_b - mean_a;
+    let sd_a = sd_sample(&a_v,&mean_a);
+    let sd_b = sd_sample(&b_v,&mean_b);
+    let sd_d = sd_b - sd_a;
+
+    out.push_str(&format!("Count A: \t{}\n",a_v.len()));
+    out.push_str(&format!("Count B: \t{}\n",b_v.len()));
+    out.push_str("\n************************************\n");
+
+    // Handle one or two tailed data Mean 
+    if p.two_tailed.is_toggled() {
+        // Two Tailed
+        let z = z_from_cl(1.0 - clevel);
+        let u = mean_d + z * sdmeanresults.mean;
+        let l = mean_d - z * sdmeanresults.mean;
+        let pv = p_from_ci(l, u, mean_d, 1.0 - clevel);
+
+        out.push_str(&format!("Mean A: \t{}\n",&science_pretty_format(mean_a, 6)));
+        out.push_str(&format!("Mean B: \t{}\n",&science_pretty_format(mean_b, 6)));
+        out.push_str("\n");
+        out.push_str(&format!("Low Diff: \t{}\n",&science_pretty_format(l, 6)));
+        out.push_str(&format!("Mean Diff: \t{}\n",&science_pretty_format(mean_d, 6)));
+        out.push_str(&format!("High Diff: \t{}\n",&science_pretty_format(u, 6)));
+        out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pv, 4)));
+
+        if l <= 0.0 && u >= 0.0 {
+            out.push_str("H0 = True \tA ≈ B\n");
+        } else {
+            if mean_a > mean_b {
+                out.push_str("H0 = False \tA > B\n");
+            } else {
+                out.push_str("H0 = False \tA < B\n");
+            }
+        };
+    } else {
+        // One Tailed
+        let z = z_from_cl(1.0 - clevel * 2.0);
+        let u = mean_d + z * sdmeanresults.mean;
+        let l = mean_d - z * sdmeanresults.mean;
+        let pv = p_from_ci(l, u, mean_d, 1.0 - clevel);
+
+        out.push_str(&format!("Mean A: \t{}\n",&science_pretty_format(mean_a, 6)));
+        out.push_str(&format!("Mean B: \t{}\n",&science_pretty_format(mean_b, 6)));
+        out.push_str("\n");
+        out.push_str(&format!("Low Diff: \t{}\n",&science_pretty_format(l, 6)));
+        out.push_str(&format!("Mean Diff: \t{}\n",&science_pretty_format(mean_d, 6)));
+        out.push_str(&format!("High Diff: \t{}\n",&science_pretty_format(u, 6)));
+        out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pv, 4)));
+
+        if mean_a > mean_b {
+            
+            if u >= 0.0 {
+                out.push_str("H0 = True \tA ≈ B\n");
+            } else {
+                out.push_str("H0 = False \tA > B\n");
+            }
+        } else {
+            if l <= 0.0 {
+                out.push_str("H0 = True \tA ≈ B\n");
+            } else {
+                out.push_str("H0 = False \tA < B\n");
+            }
+        }
+    }
+
+    out.push_str("\n************************************\n");
+
+    // Handle one or two tailed data SD
+    if p.two_tailed.is_toggled() {
+        // Two Tailed
+        let z = z_from_cl(1.0 - clevel);
+        let u = sd_d + z * sdmeanresults.sd;
+        let l = sd_d - z * sdmeanresults.sd;
+        let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
+
+        out.push_str(&format!("SD A:    \t{}\n",&science_pretty_format(sd_a, 6)));
+        out.push_str(&format!("SD B:    \t{}\n",&science_pretty_format(sd_b, 6)));
+        out.push_str("\n");
+        out.push_str(&format!("Low Diff: \t{}\n",&science_pretty_format(l, 6)));
+        out.push_str(&format!("SD Diff: \t{}\n",&science_pretty_format(sd_d, 6)));
+        out.push_str(&format!("High Diff: \t{}\n",&science_pretty_format(u, 6)));
+        out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pv, 4)));
+
+        if l <= 0.0 && u >= 0.0 {
+            out.push_str("H0 = True \tA ≈ B\n");
+        } else {
+            if sd_a > sd_b {
+                out.push_str("H0 = False \tA > B\n");
+            } else {
+                out.push_str("H0 = False \tA < B\n");
+            }
+        };
+    } else {
+        // One Tailed
+        let z = z_from_cl(1.0 - clevel * 2.0);
+        let u = sd_d + z * sdmeanresults.sd;
+        let l = sd_d - z * sdmeanresults.sd;
+        let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
+
+        out.push_str(&format!("SD A:    \t{}\n",&science_pretty_format(sd_a, 6)));
+        out.push_str(&format!("SD B:    \t{}\n",&science_pretty_format(sd_b, 6)));
+        out.push_str("\n");
+        out.push_str(&format!("Low Diff: \t{}\n",&science_pretty_format(l, 6)));
+        out.push_str(&format!("SD Diff: \t{}\n",&science_pretty_format(sd_d, 6)));
+        out.push_str(&format!("High Diff: \t{}\n",&science_pretty_format(u, 6)));
+        out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pv, 4)));
+
+        if sd_a > sd_b {
+            
+            if u >= 0.0 {
+                out.push_str("H0 = True \tA ≈ B\n");
+            } else {
+                out.push_str("H0 = False \tA > B\n");
+            }
+        } else {
+            if l <= 0.0 {
+                out.push_str("H0 = True \tA ≈ B\n");
+            } else {
+                out.push_str("H0 = False \tA < B\n");
+            }
+        }
+    }
+
+    out.push_str("\n************************************\n");
+
+    // Check for paired correlation data
+    if p.paired_data.is_checked() {
         // Perform correlation calculations
         if a_v.len() > 1 {
             let r = r_value(rankify(&a_v), rankify(&b_v));
 
-            p.corr.set_value(&science_pretty_format(r, 2));
+            out.push_str(&format!("r-Value: \t{}\n",&science_pretty_format(r,2)));
 
             let cstring = match r {
                 r if r == 0.0 => "None",
@@ -206,106 +319,34 @@ fn calculate(p: &mut Parameters) {
                 _ => "",
             };
 
-            p.cresults.set_label(&cstring);
+            out.push_str(&format!("Corr:      \t{}\n",&cstring));
 
             let dof = a_v.len() as f64 - 2.0;
             let tr = r / ((1.0 - r * r) / dof).sqrt();
             let pr = p_from_t(tr, dof);
 
-            p.cp.set_value(&science_pretty_format(pr, 4));
+            out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pr,4)));
+
 
             if pr <= clevel {
-                p.cpresults.set_label("Significant")
+                out.push_str("Stat:       \tSignificant\n");
             } else {
-                p.cpresults.set_label("Not Significant")
+                out.push_str("Stat:       \tNot Significant\n");
             }
-        } else {
-            p.corr.set_value("");
-            p.cp.set_value("");
-            p.cresults.set_label("");
-            p.cpresults.set_label("");
-        }
-    } else {
-        dmeans = unpaired_data(&a_v, &b_v, iterations);
+        }   
+    } 
 
-        p.corr.set_value("");
-        p.cp.set_value("");
-        p.cresults.set_label("");
-        p.cpresults.set_label("");
-    };
-
-    // Calculate stats for the data
-    let mean_a = mean(&a_v);
-    let mean_b = mean(&b_v);
-    let mean_d = mean_b - mean_a;
-    let sd = sd_pop(&dmeans);
-
-    // Handle one or two tailed data
-    if p.two_tailed.is_toggled() {
-        // Two Tailed
-        let z = z_from_cl(1.0 - clevel);
-        let u = mean_d + z * sd;
-        let l = mean_d - z * sd;
-        let pv = p_from_ci(l, u, mean_d, 1.0 - clevel);
-
-        p.mp.set_value(&science_pretty_format(pv, 4));
-
-        p.ci_low.set_value(&science_pretty_format(l, 6));
-        p.mean_a.set_value(&science_pretty_format(mean_a, 6));
-        p.mean_b.set_value(&science_pretty_format(mean_b, 6));
-        p.ci_high.set_value(&science_pretty_format(u, 6));
-        p.mean_diff.set_value(&science_pretty_format(mean_d, 6));
-
-        if l <= 0.0 && u >= 0.0 {
-            p.results.set_label("H0 = True   A ≈ B");
-        } else {
-            if mean_a > mean_b {
-                p.results.set_label("H0 = False   A > B");
-            } else {
-                p.results.set_label("H0 = False   A < B");
-            }
-        };
-    } else {
-        // One Tailed
-        let z = z_from_cl(1.0 - clevel * 2.0);
-        let u = mean_d + z * sd;
-        let l = mean_d - z * sd;
-        let pv = p_from_ci(l, u, mean_d, 1.0 - clevel);
-
-        if mean_a > mean_b {
-            p.ci_low.set_value("");
-            p.mean_a.set_value(&science_pretty_format(mean_a, 6));
-            p.mean_b.set_value(&science_pretty_format(mean_b, 6));
-            p.ci_high.set_value(&science_pretty_format(u, 6));
-            p.mean_diff.set_value(&science_pretty_format(mean_d, 6));
-            p.mp.set_value(&science_pretty_format(pv, 4));
-
-            if u >= 0.0 {
-                p.results.set_label("H0 = True   A ≈ B");
-            } else {
-                p.results.set_label("H0 = False   A > B");
-            }
-        } else {
-            p.ci_low.set_value(&science_pretty_format(l, 6));
-            p.mean_a.set_value(&science_pretty_format(mean_a, 6));
-            p.mean_b.set_value(&science_pretty_format(mean_b, 6));
-            p.ci_high.set_value("");
-            p.mean_diff.set_value(&science_pretty_format(mean_d, 6));
-            p.mp.set_value(&science_pretty_format(pv, 4));
-
-            if l <= 0.0 {
-                p.results.set_label("H0 = True   A ≈ B");
-            } else {
-                p.results.set_label("H0 = False   A < B");
-            }
-        }
-    }
+    p.output.buffer().unwrap().set_text(&out);
 }
 
 // Paired data
-fn paired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Vec<f64> {
+fn paired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Sdmeanresults {
     let mut dmeans: Vec<f64> = Vec::new();
+    let mut dsds: Vec<f64> = Vec::new();
+    let mut tmp: Vec<f64> = Vec::new();
+
     let mut cvalues: Vec<f64> = Vec::new();
+
     let l = a_v.len();
 
     for i in 0..l {
@@ -313,46 +354,67 @@ fn paired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Vec<f64> {
     }
 
     for _i in 0..iterations {
-        let mut total: f64 = 0.0;
+        tmp.clear();
         for _j in 0..l {
-            total += cvalues[rand::thread_rng().gen_range(0..l)];
+            tmp.push(cvalues[rand::thread_rng().gen_range(0..l)]);
         }
-        dmeans.push(total / (l as f64));
+        let m: f64 = mean(&tmp);
+        dmeans.push(m);
+        dsds.push(sd_sample(&tmp,&m));
     }
 
-    dmeans
+    Sdmeanresults {
+        mean: sd_sample(&dmeans,&mean(&dmeans)),
+        sd: sd_sample(&dsds,&mean(&dsds))
+    }
 }
 
 // Unpaired data
-fn unpaired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Vec<f64> {
+fn unpaired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Sdmeanresults {
     let mut dmeans: Vec<f64> = Vec::new();
     let mut ameans: Vec<f64> = Vec::new();
     let mut bmeans: Vec<f64> = Vec::new();
+
+    let mut dsds: Vec<f64> = Vec::new();
+    let mut asds: Vec<f64> = Vec::new();
+    let mut bsds: Vec<f64> = Vec::new();
+
+    let mut tmp: Vec<f64> = Vec::new();
+    
     let avl = a_v.len();
     let bvl = b_v.len();
 
     for _i in 0..iterations {
-        let mut total: f64 = 0.0;
+        tmp.clear();
         for _j in 0..avl {
-            total += a_v[rand::thread_rng().gen_range(0..avl)]
+            tmp.push(a_v[rand::thread_rng().gen_range(0..avl)]);
         }
-        ameans.push(total / (avl as f64));
+        let m: f64 = mean(&tmp);
+        ameans.push(m);
+        asds.push(sd_sample(&tmp,&m));
     }
 
     for _i in 0..iterations {
-        let mut total: f64 = 0.0;
+        tmp.clear();
         for _j in 0..bvl {
-            total += b_v[rand::thread_rng().gen_range(0..bvl)]
+            tmp.push(b_v[rand::thread_rng().gen_range(0..bvl)]);
         }
-        bmeans.push(total / (bvl as f64));
+        let m: f64 = mean(&tmp);
+        bmeans.push(m);
+        bsds.push(sd_sample(&tmp,&m));
     }
 
     for i in 0..iterations {
         dmeans.push(bmeans[i as usize] - ameans[i as usize]);
+        dsds.push(bsds[i as usize] - asds[i as usize])
     }
 
-    dmeans
+    Sdmeanresults {
+        mean: sd_sample(&dmeans,&mean(&dmeans)),
+        sd: sd_sample(&dsds,&mean(&dsds))
+    }
 }
+
 
 // Convert CSV from the main windows to arrays of floats, also clean up stray whitespace
 fn csv_split(inp: &String) -> Vec<f64> {
@@ -382,16 +444,15 @@ fn mean(vec: &Vec<f64>) -> f64 {
     sum / vec.len() as f64
 }
 
-// Calculate SD of a population
-fn sd_pop(x: &Vec<f64>) -> f64 {
+// Calculate SD of a sample
+fn sd_sample(x: &Vec<f64>,mean: &f64) -> f64 {
     let mut sd: f64 = 0.0;
     let size: usize = x.len();
-    let mean = mean(&x);
 
     for i in 0..size {
         sd += (x[i] - mean).powf(2.0);
     }
-    (sd / size as f64).sqrt()
+    (sd / (size - 1) as f64).sqrt()
 }
 
 // Rankify
@@ -685,9 +746,8 @@ fn science_pretty_format(value: f64, digits: usize) -> String {
     if value.abs() >= base.powf(digits as f64 - 1.0)
         || value.abs() <= base.powf(-((digits / 2) as f64))
     {
-        return format!("{:.*e}", digits, value);
+        return format!("{:.*e}", digits, value).to_string();
     }
     format!("{:.*}", digits, value)
-        .trim_end_matches(|c| c == '0' || c == '.')
-        .to_string()
+        .trim_end_matches(|c| c == '0' || c == '.').to_string()
 }
