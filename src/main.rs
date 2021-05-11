@@ -1,8 +1,8 @@
 #![windows_subsystem = "windows"]
-use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, window::*, text::*,};
+use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, text::*, window::*};
 use rand::Rng;
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 // Define a struct for the form fields
 struct Parameters {
     data_a: TextEditor,
@@ -15,8 +15,8 @@ struct Parameters {
     iterations: IntInput,
 }
 
-#[derive(Clone,Debug)]
-// Define a struct for our dmeans and dsds 
+#[derive(Clone, Debug)]
+// Define a struct for our dmeans and dsds
 struct Sdmeanresults {
     mean: f64,
     sd: f64,
@@ -50,7 +50,6 @@ fn main() {
     let buf_a = TextBuffer::default();
     let buf_b = TextBuffer::default();
     let buf_out = TextBuffer::default();
-
 
     // Data Labels for Main Input windows
     Frame::new(16, 10, 51, 17, "Data A");
@@ -106,7 +105,6 @@ fn clear(p: &mut Parameters) {
     p.data_a.buffer().unwrap().set_text("");
     p.data_b.buffer().unwrap().set_text("");
 }
-
 
 // Handle Calculate button
 fn calculate(p: &mut Parameters) {
@@ -168,21 +166,21 @@ fn calculate(p: &mut Parameters) {
         sdmeanresults = paired_data(&a_v, &b_v, iterations);
     } else {
         sdmeanresults = unpaired_data(&a_v, &b_v, iterations);
-    };    
+    };
 
     // Calculate stats for the data
     let mean_a = mean(&a_v);
     let mean_b = mean(&b_v);
     let mean_d = mean_b - mean_a;
-    let sd_a = sd_sample(&a_v,&mean_a);
-    let sd_b = sd_sample(&b_v,&mean_b);
+    let sd_a = sd_sample(&a_v, &mean_a);
+    let sd_b = sd_sample(&b_v, &mean_b);
     let sd_d = sd_b - sd_a;
 
-    out.push_str(&format!("Count A: \t{}\n",a_v.len()));
-    out.push_str(&format!("Count B: \t{}\n",b_v.len()));
+    out.push_str(&format!("Count A: \t{}\n", a_v.len()));
+    out.push_str(&format!("Count B: \t{}\n", b_v.len()));
     out.push_str("\n************************************\n");
 
-    // Handle one or two tailed data Mean 
+    // Handle one or two tailed data Mean
     if p.two_tailed.is_toggled() {
         // Two Tailed
         let z = z_from_cl(1.0 - clevel);
@@ -190,13 +188,22 @@ fn calculate(p: &mut Parameters) {
         let l = mean_d - z * sdmeanresults.mean;
         let pv = p_from_ci(l, u, mean_d, 1.0 - clevel);
 
-        out.push_str(&format!("Mean A: \t{}\n",&science_pretty_format(mean_a, 6)));
-        out.push_str(&format!("Mean B: \t{}\n",&science_pretty_format(mean_b, 6)));
+        out.push_str(&format!(
+            "Mean A: \t{}\n",
+            &science_pretty_format(mean_a, 6)
+        ));
+        out.push_str(&format!(
+            "Mean B: \t{}\n",
+            &science_pretty_format(mean_b, 6)
+        ));
         out.push_str("\n");
-        out.push_str(&format!("Low Diff: \t{}\n",&science_pretty_format(l, 6)));
-        out.push_str(&format!("Mean Diff: \t{}\n",&science_pretty_format(mean_d, 6)));
-        out.push_str(&format!("High Diff: \t{}\n",&science_pretty_format(u, 6)));
-        out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pv, 4)));
+        out.push_str(&format!("Low Diff: \t{}\n", &science_pretty_format(l, 6)));
+        out.push_str(&format!(
+            "Mean Diff: \t{}\n",
+            &science_pretty_format(mean_d, 6)
+        ));
+        out.push_str(&format!("High Diff: \t{}\n", &science_pretty_format(u, 6)));
+        out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
 
         if l <= 0.0 && u >= 0.0 {
             out.push_str("H0 = True \tA ≈ B\n");
@@ -214,22 +221,35 @@ fn calculate(p: &mut Parameters) {
         let l = mean_d - z * sdmeanresults.mean;
         let pv = p_from_ci(l, u, mean_d, 1.0 - clevel);
 
-        out.push_str(&format!("Mean A: \t{}\n",&science_pretty_format(mean_a, 6)));
-        out.push_str(&format!("Mean B: \t{}\n",&science_pretty_format(mean_b, 6)));
+        out.push_str(&format!(
+            "Mean A: \t{}\n",
+            &science_pretty_format(mean_a, 6)
+        ));
+        out.push_str(&format!(
+            "Mean B: \t{}\n",
+            &science_pretty_format(mean_b, 6)
+        ));
         out.push_str("\n");
-        out.push_str(&format!("Low Diff: \t{}\n",&science_pretty_format(l, 6)));
-        out.push_str(&format!("Mean Diff: \t{}\n",&science_pretty_format(mean_d, 6)));
-        out.push_str(&format!("High Diff: \t{}\n",&science_pretty_format(u, 6)));
-        out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pv, 4)));
 
         if mean_a > mean_b {
-            
+            out.push_str(&format!("Low Diff: \t{}\n", &science_pretty_format(l, 6)));
+            out.push_str(&format!(
+                "Mean Diff: \t{}\n",
+                &science_pretty_format(mean_d, 6)
+            ));
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
             if u >= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
                 out.push_str("H0 = False \tA > B\n");
             }
         } else {
+            out.push_str(&format!(
+                "Mean Diff: \t{}\n",
+                &science_pretty_format(mean_d, 6)
+            ));
+            out.push_str(&format!("High Diff: \t{}\n", &science_pretty_format(u, 6)));
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
             if l <= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
@@ -248,13 +268,13 @@ fn calculate(p: &mut Parameters) {
         let l = sd_d - z * sdmeanresults.sd;
         let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
 
-        out.push_str(&format!("SD A:    \t{}\n",&science_pretty_format(sd_a, 6)));
-        out.push_str(&format!("SD B:    \t{}\n",&science_pretty_format(sd_b, 6)));
+        out.push_str(&format!("SD A:    \t{}\n", &science_pretty_format(sd_a, 6)));
+        out.push_str(&format!("SD B:    \t{}\n", &science_pretty_format(sd_b, 6)));
         out.push_str("\n");
-        out.push_str(&format!("Low Diff: \t{}\n",&science_pretty_format(l, 6)));
-        out.push_str(&format!("SD Diff: \t{}\n",&science_pretty_format(sd_d, 6)));
-        out.push_str(&format!("High Diff: \t{}\n",&science_pretty_format(u, 6)));
-        out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pv, 4)));
+        out.push_str(&format!("Low Diff: \t{}\n", &science_pretty_format(l, 6)));
+        out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
+        out.push_str(&format!("High Diff: \t{}\n", &science_pretty_format(u, 6)));
+        out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
 
         if l <= 0.0 && u >= 0.0 {
             out.push_str("H0 = True \tA ≈ B\n");
@@ -272,22 +292,23 @@ fn calculate(p: &mut Parameters) {
         let l = sd_d - z * sdmeanresults.sd;
         let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
 
-        out.push_str(&format!("SD A:    \t{}\n",&science_pretty_format(sd_a, 6)));
-        out.push_str(&format!("SD B:    \t{}\n",&science_pretty_format(sd_b, 6)));
+        out.push_str(&format!("SD A:    \t{}\n", &science_pretty_format(sd_a, 6)));
+        out.push_str(&format!("SD B:    \t{}\n", &science_pretty_format(sd_b, 6)));
         out.push_str("\n");
-        out.push_str(&format!("Low Diff: \t{}\n",&science_pretty_format(l, 6)));
-        out.push_str(&format!("SD Diff: \t{}\n",&science_pretty_format(sd_d, 6)));
-        out.push_str(&format!("High Diff: \t{}\n",&science_pretty_format(u, 6)));
-        out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pv, 4)));
 
         if sd_a > sd_b {
-            
+            out.push_str(&format!("Low Diff: \t{}\n", &science_pretty_format(l, 6)));
+            out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
             if u >= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
                 out.push_str("H0 = False \tA > B\n");
             }
         } else {
+            out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
+            out.push_str(&format!("High Diff: \t{}\n", &science_pretty_format(u, 6)));
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
             if l <= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
@@ -304,7 +325,7 @@ fn calculate(p: &mut Parameters) {
         if a_v.len() > 1 {
             let r = r_value(rankify(&a_v), rankify(&b_v));
 
-            out.push_str(&format!("r-Value: \t{}\n",&science_pretty_format(r,2)));
+            out.push_str(&format!("r-Value: \t{}\n", &science_pretty_format(r, 2)));
 
             let cstring = match r {
                 r if r == 0.0 => "None",
@@ -319,22 +340,21 @@ fn calculate(p: &mut Parameters) {
                 _ => "",
             };
 
-            out.push_str(&format!("Corr:      \t{}\n",&cstring));
+            out.push_str(&format!("Corr:      \t{}\n", &cstring));
 
             let dof = a_v.len() as f64 - 2.0;
             let tr = r / ((1.0 - r * r) / dof).sqrt();
             let pr = p_from_t(tr, dof);
 
-            out.push_str(&format!("\np-Value: \t{}\n",&science_pretty_format(pr,4)));
-
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pr, 4)));
 
             if pr <= clevel {
-                out.push_str("Stat:       \tSignificant\n");
+                out.push_str("Sig:       \tSignificant\n");
             } else {
-                out.push_str("Stat:       \tNot Significant\n");
+                out.push_str("Sig:       \tNot Significant\n");
             }
-        }   
-    } 
+        }
+    }
 
     p.output.buffer().unwrap().set_text(&out);
 }
@@ -360,12 +380,12 @@ fn paired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Sdmeanresults
         }
         let m: f64 = mean(&tmp);
         dmeans.push(m);
-        dsds.push(sd_sample(&tmp,&m));
+        dsds.push(sd_sample(&tmp, &m));
     }
 
     Sdmeanresults {
-        mean: sd_sample(&dmeans,&mean(&dmeans)),
-        sd: sd_sample(&dsds,&mean(&dsds))
+        mean: sd_sample(&dmeans, &mean(&dmeans)),
+        sd: sd_sample(&dsds, &mean(&dsds)),
     }
 }
 
@@ -380,7 +400,7 @@ fn unpaired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Sdmeanresul
     let mut bsds: Vec<f64> = Vec::new();
 
     let mut tmp: Vec<f64> = Vec::new();
-    
+
     let avl = a_v.len();
     let bvl = b_v.len();
 
@@ -391,7 +411,7 @@ fn unpaired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Sdmeanresul
         }
         let m: f64 = mean(&tmp);
         ameans.push(m);
-        asds.push(sd_sample(&tmp,&m));
+        asds.push(sd_sample(&tmp, &m));
     }
 
     for _i in 0..iterations {
@@ -401,7 +421,7 @@ fn unpaired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Sdmeanresul
         }
         let m: f64 = mean(&tmp);
         bmeans.push(m);
-        bsds.push(sd_sample(&tmp,&m));
+        bsds.push(sd_sample(&tmp, &m));
     }
 
     for i in 0..iterations {
@@ -410,11 +430,10 @@ fn unpaired_data(a_v: &Vec<f64>, b_v: &Vec<f64>, iterations: i32) -> Sdmeanresul
     }
 
     Sdmeanresults {
-        mean: sd_sample(&dmeans,&mean(&dmeans)),
-        sd: sd_sample(&dsds,&mean(&dsds))
+        mean: sd_sample(&dmeans, &mean(&dmeans)),
+        sd: sd_sample(&dsds, &mean(&dsds)),
     }
 }
-
 
 // Convert CSV from the main windows to arrays of floats, also clean up stray whitespace
 fn csv_split(inp: &String) -> Vec<f64> {
@@ -445,7 +464,7 @@ fn mean(vec: &Vec<f64>) -> f64 {
 }
 
 // Calculate SD of a sample
-fn sd_sample(x: &Vec<f64>,mean: &f64) -> f64 {
+fn sd_sample(x: &Vec<f64>, mean: &f64) -> f64 {
     let mut sd: f64 = 0.0;
     let size: usize = x.len();
 
@@ -749,5 +768,6 @@ fn science_pretty_format(value: f64, digits: usize) -> String {
         return format!("{:.*e}", digits, value).to_string();
     }
     format!("{:.*}", digits, value)
-        .trim_end_matches(|c| c == '0' || c == '.').to_string()
+        .trim_end_matches(|c| c == '0' || c == '.')
+        .to_string()
 }
