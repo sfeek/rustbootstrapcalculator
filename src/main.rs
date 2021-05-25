@@ -31,7 +31,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Mean Difference & Spearman Calculator v2.5",
+        "Bootstrap Mean Difference & Spearman Calculator v2.51",
     );
 
     // Fill the form structure
@@ -768,6 +768,7 @@ fn science_pretty_format(value: f64, digits: usize) -> String {
         return format!("{:.*e}", digits, value).to_string();
     }
     format!("{:.*}", digits, value)
-        .trim_end_matches(|c| c == '0' || c == '.')
+        .trim_end_matches(|c| c == '0')
+        .trim_end_matches(|c| c == '.')
         .to_string()
 }
