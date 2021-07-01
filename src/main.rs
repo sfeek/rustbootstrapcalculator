@@ -31,7 +31,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Mean Difference & Spearman Calculator v2.51",
+        "Bootstrap Mean Difference & Spearman Calculator v2.60",
     );
 
     // Fill the form structure
