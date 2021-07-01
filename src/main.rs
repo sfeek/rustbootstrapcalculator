@@ -175,6 +175,9 @@ fn calculate(p: &mut Parameters) {
     let sd_a = sd_sample(&a_v, &mean_a);
     let sd_b = sd_sample(&b_v, &mean_b);
     let sd_d = sd_b - sd_a;
+    let sd_pooled = ((sd_a * sd_a + sd_b * sd_b) / 2.0).sqrt();
+    let d = mean_d / sd_pooled;
+    let r_y = d / (d * d + 4.0).sqrt();
 
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
@@ -319,13 +322,18 @@ fn calculate(p: &mut Parameters) {
 
     out.push_str("\n************************************\n");
 
+    out.push_str(&format!("Cohen's d: \t{}\n", &science_pretty_format(d, 2)));
+    out.push_str(&format!("Corr Coeff r: \t{}\n", &science_pretty_format(r_y, 2)));
+
+    out.push_str("\n************************************\n");
+
     // Check for paired correlation data
     if p.paired_data.is_checked() {
         // Perform correlation calculations
         if a_v.len() > 1 {
             let r = r_value(rankify(&a_v), rankify(&b_v));
 
-            out.push_str(&format!("r-Value: \t{}\n", &science_pretty_format(r, 2)));
+            out.push_str(&format!("Pearson r: \t{}\n", &science_pretty_format(r, 2)));
 
             let cstring = match r {
                 r if r == 0.0 => "None",
