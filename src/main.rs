@@ -331,7 +331,7 @@ fn calculate(p: &mut Parameters) {
         if a_v.len() > 1 {
             let r = r_value(rankify(&a_v), rankify(&b_v));
 
-            out.push_str(&format!("Pearson r: \t{}\n", &science_pretty_format(r, 2)));
+            out.push_str(&format!("Spearman's ρ: \t{}\n", &science_pretty_format(r, 2)));
 
             let cstring = match r {
                 r if r == 0.0 => "None",
