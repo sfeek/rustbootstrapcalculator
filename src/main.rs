@@ -43,7 +43,7 @@ fn main() {
         two_tailed: RadioRoundButton::new(558, 81, 99, 21, "Two Tailed"),
         cinterval: FloatInput::new(558, 119, 54, 22, "CL"),
         iterations: IntInput::new(558, 148, 54, 22, "Iterations"),
-        output: TextDisplay::new(480, 200, 225, 300, ""),
+        output: TextDisplay::new(480, 200, 230, 300, ""),
     };
 
     // Text buffers for our inputs and output
@@ -205,7 +205,7 @@ fn calculate(p: &mut Parameters) {
             &science_pretty_format(mean_d, 6)
         ));
         out.push_str(&format!("High Diff: \t{}\n", &science_pretty_format(u, 6)));
-        out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
+        out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
 
         if l <= 0.0 && u >= 0.0 {
             out.push_str("H0 = True \tA ≈ B\n");
@@ -239,7 +239,7 @@ fn calculate(p: &mut Parameters) {
                 "Mean Diff: \t{}\n",
                 &science_pretty_format(mean_d, 6)
             ));
-            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if u >= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
@@ -251,7 +251,7 @@ fn calculate(p: &mut Parameters) {
                 &science_pretty_format(mean_d, 6)
             ));
             out.push_str(&format!("High Diff: \t{}\n", &science_pretty_format(u, 6)));
-            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if l <= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
@@ -271,12 +271,12 @@ fn calculate(p: &mut Parameters) {
         let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
 
         out.push_str(&format!("SD A:    \t{}\n", &science_pretty_format(sd_a, 6)));
-        out.push_str(&format!("SD B:    \t{}\n", &science_pretty_format(sd_b, 6)));
+        out.push_str(&format!("SD B:    \t{}\n", &science_pretty_format(sd_b, 3)));
         out.push_str("\n");
         out.push_str(&format!("Low Diff: \t{}\n", &science_pretty_format(l, 6)));
         out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
         out.push_str(&format!("High Diff: \t{}\n", &science_pretty_format(u, 6)));
-        out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
+        out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
 
         if l <= 0.0 && u >= 0.0 {
             out.push_str("H0 = True \tA ≈ B\n");
@@ -301,7 +301,7 @@ fn calculate(p: &mut Parameters) {
         if sd_a > sd_b {
             out.push_str(&format!("Low Diff: \t{}\n", &science_pretty_format(l, 6)));
             out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
-            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if u >= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
@@ -310,7 +310,7 @@ fn calculate(p: &mut Parameters) {
         } else {
             out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
             out.push_str(&format!("High Diff: \t{}\n", &science_pretty_format(u, 6)));
-            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 4)));
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if l <= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
@@ -352,7 +352,7 @@ fn calculate(p: &mut Parameters) {
             let tr = r / ((1.0 - r * r) / dof).sqrt();
             let pr = p_from_t(tr, dof);
 
-            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pr, 4)));
+            out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pr, 3)));
 
             if pr <= clevel {
                 out.push_str("Sig:       \tSignificant\n");
@@ -763,13 +763,11 @@ fn p_from_z(z: f64) -> f64 {
 
 // Pretty Format Scientific Numbers
 fn science_pretty_format(value: f64, digits: usize) -> String {
-    let base: f64 = 10.0;
-
     if value.abs() == 0.0 {
         return "0".to_string();
     }
-    if value.abs() >= base.powf(digits as f64 - 1.0)
-        || value.abs() <= base.powf(-((digits / 2) as f64))
+    if value.abs() >= 10000.0
+        || value.abs() < 0.001
     {
         return format!("{:.*e}", digits, value).to_string();
     }
