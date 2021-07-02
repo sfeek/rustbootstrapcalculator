@@ -177,7 +177,6 @@ fn calculate(p: &mut Parameters) {
     let sd_d = sd_b - sd_a;
     let sd_pooled = ((sd_a * sd_a + sd_b * sd_b) / 2.0).sqrt();
     let d = mean_d / sd_pooled;
-    let r_y = d / (d * d + 4.0).sqrt();
 
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
@@ -323,7 +322,6 @@ fn calculate(p: &mut Parameters) {
     out.push_str("\n************************************\n");
 
     out.push_str(&format!("Cohen's d: \t{}\n", &science_pretty_format(d, 2)));
-    out.push_str(&format!("Corr Coeff r: \t{}\n", &science_pretty_format(r_y, 2)));
 
     out.push_str("\n************************************\n");
 
