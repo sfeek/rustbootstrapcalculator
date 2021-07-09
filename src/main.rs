@@ -31,7 +31,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Mean Difference & Spearman Calculator v2.60",
+        "Bootstrap Mean Difference & Spearman Calculator v2.70",
     );
 
     // Fill the form structure
@@ -177,6 +177,10 @@ fn calculate(p: &mut Parameters) {
     let sd_d = sd_b - sd_a;
     let sd_pooled = ((sd_a * sd_a + sd_b * sd_b) / 2.0).sqrt();
     let d = mean_d / sd_pooled;
+    let sk_a = skewness(&a_v, &mean_a, &sd_a);
+    let sk_b = skewness(&b_v, &mean_b, &sd_b);
+    let kt_a = kurtosis(&a_v, &mean_a, &sd_a);
+    let kt_b = kurtosis(&b_v, &mean_b, &sd_b);
 
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
@@ -322,6 +326,13 @@ fn calculate(p: &mut Parameters) {
     out.push_str("\n************************************\n");
 
     out.push_str(&format!("Cohen's d: \t{}\n", &science_pretty_format(d, 2)));
+
+    out.push_str("\n************************************\n");
+
+    out.push_str(&format!("Skewness A:    \t{}\n", &science_pretty_format(sk_a, 3)));
+    out.push_str(&format!("Skewness B:    \t{}\n", &science_pretty_format(sk_b, 3)));
+    out.push_str(&format!("\nKurtosis A:    \t{}\n", &science_pretty_format(kt_a, 3)));
+    out.push_str(&format!("Kurtosis B:    \t{}\n", &science_pretty_format(kt_b, 3)));
 
     out.push_str("\n************************************\n");
 
@@ -479,6 +490,33 @@ fn sd_sample(x: &Vec<f64>, mean: &f64) -> f64 {
     }
     (sd / (size - 1) as f64).sqrt()
 }
+
+// Calculate Skewness
+fn skewness(vec: &Vec<f64>, mean: &f64, sd: &f64) -> f64 {
+    let sz:f64 = vec.len() as f64;
+    let mut tmpsum: f64 = 0.0;
+    let sdp = sd.powf(3.0);
+
+    for v in &mut vec.iter() {
+        tmpsum += (v - mean).powf(3.0) / sdp;
+    }
+    
+    (sz / ((sz - 1.0) * (sz - 2.0))) * tmpsum
+}
+
+// Calculate Kurtosis
+fn kurtosis(vec: &Vec<f64>, mean: &f64, sd: &f64) -> f64 {
+    let sz:f64 = vec.len() as f64;
+    let mut tmpsum: f64 = 0.0;
+    let sdp = sd.powf(4.0);
+
+    for v in &mut vec.iter() {
+        tmpsum += (v - mean).powf(4.0) / sdp;
+    }
+
+    (((sz * (sz + 1.0)) / ((sz - 1.0) * (sz - 2.0) * (sz - 3.0))) * tmpsum) - ((3.0 * (sz - 1.0) * (sz - 1.0)) / ((sz - 2.0) * (sz - 3.0)))
+}
+
 
 // Rankify
 fn rankify(x: &Vec<f64>) -> Vec<f64> {
