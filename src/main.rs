@@ -329,6 +329,11 @@ fn calculate(p: &mut Parameters) {
 
     out.push_str("\n************************************\n");
 
+    out.push_str(&format!("SE A:    \t{}\n", &science_pretty_format(sd_a / (a_v.len() as f64).sqrt(), 6)));
+    out.push_str(&format!("SE B:    \t{}\n", &science_pretty_format(sd_b / (b_v.len() as f64).sqrt(), 6)));
+
+    out.push_str("\n************************************\n");
+
     out.push_str(&format!("Skewness A:    \t{}\n", &science_pretty_format(sk_a, 3)));
     out.push_str(&format!("Skewness B:    \t{}\n", &science_pretty_format(sk_b, 3)));
     out.push_str(&format!("\nKurtosis A:    \t{}\n", &science_pretty_format(kt_a, 3)));
