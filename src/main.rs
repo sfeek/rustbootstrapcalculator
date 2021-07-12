@@ -31,7 +31,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Mean Difference & Spearman Calculator v2.70",
+        "Bootstrap Mean Difference & Spearman Calculator v2.71",
     );
 
     // Fill the form structure
@@ -114,17 +114,17 @@ fn calculate(p: &mut Parameters) {
     let mut out: String = String::from("");
 
     // Get the CSV data out of the two data fields
-    let a_v: Vec<f64> = csv_split(&p.data_a.buffer().unwrap().text());
-    let b_v: Vec<f64> = csv_split(&p.data_b.buffer().unwrap().text());
+    let mut a_v: Vec<f64> = csv_split(&p.data_a.buffer().unwrap().text());
+    let mut b_v: Vec<f64> = csv_split(&p.data_b.buffer().unwrap().text());
 
     if a_v.len() < 1 {
-        alert(368, 265, "Data A must have a least one value");
-        return;
+        p.data_a.buffer().unwrap().set_text("0.0");
+        a_v.push(0.0);
     }
 
     if b_v.len() < 1 {
-        alert(368, 265, "Data B must have a least one value");
-        return;
+        p.data_b.buffer().unwrap().set_text("0.0");
+        b_v.push(0.0);
     }
 
     // Get our iteration count
@@ -329,15 +329,33 @@ fn calculate(p: &mut Parameters) {
 
     out.push_str("\n************************************\n");
 
-    out.push_str(&format!("SE A:    \t{}\n", &science_pretty_format(sd_a / (a_v.len() as f64).sqrt(), 6)));
-    out.push_str(&format!("SE B:    \t{}\n", &science_pretty_format(sd_b / (b_v.len() as f64).sqrt(), 6)));
+    out.push_str(&format!(
+        "SE A:    \t{}\n",
+        &science_pretty_format(sd_a / (a_v.len() as f64).sqrt(), 6)
+    ));
+    out.push_str(&format!(
+        "SE B:    \t{}\n",
+        &science_pretty_format(sd_b / (b_v.len() as f64).sqrt(), 6)
+    ));
 
     out.push_str("\n************************************\n");
 
-    out.push_str(&format!("Skewness A:    \t{}\n", &science_pretty_format(sk_a, 3)));
-    out.push_str(&format!("Skewness B:    \t{}\n", &science_pretty_format(sk_b, 3)));
-    out.push_str(&format!("\nKurtosis A:    \t{}\n", &science_pretty_format(kt_a, 3)));
-    out.push_str(&format!("Kurtosis B:    \t{}\n", &science_pretty_format(kt_b, 3)));
+    out.push_str(&format!(
+        "Skewness A:    \t{}\n",
+        &science_pretty_format(sk_a, 3)
+    ));
+    out.push_str(&format!(
+        "Skewness B:    \t{}\n",
+        &science_pretty_format(sk_b, 3)
+    ));
+    out.push_str(&format!(
+        "\nKurtosis A:    \t{}\n",
+        &science_pretty_format(kt_a, 3)
+    ));
+    out.push_str(&format!(
+        "Kurtosis B:    \t{}\n",
+        &science_pretty_format(kt_b, 3)
+    ));
 
     out.push_str("\n************************************\n");
 
@@ -347,7 +365,10 @@ fn calculate(p: &mut Parameters) {
         if a_v.len() > 1 {
             let r = r_value(rankify(&a_v), rankify(&b_v));
 
-            out.push_str(&format!("Spearman's ρ: \t{}\n", &science_pretty_format(r, 2)));
+            out.push_str(&format!(
+                "Spearman's ρ: \t{}\n",
+                &science_pretty_format(r, 2)
+            ));
 
             let cstring = match r {
                 r if r == 0.0 => "None",
@@ -498,20 +519,20 @@ fn sd_sample(x: &Vec<f64>, mean: &f64) -> f64 {
 
 // Calculate Skewness
 fn skewness(vec: &Vec<f64>, mean: &f64, sd: &f64) -> f64 {
-    let sz:f64 = vec.len() as f64;
+    let sz: f64 = vec.len() as f64;
     let mut tmpsum: f64 = 0.0;
     let sdp = sd.powf(3.0);
 
     for v in &mut vec.iter() {
         tmpsum += (v - mean).powf(3.0) / sdp;
     }
-    
+
     (sz / ((sz - 1.0) * (sz - 2.0))) * tmpsum
 }
 
 // Calculate Kurtosis
 fn kurtosis(vec: &Vec<f64>, mean: &f64, sd: &f64) -> f64 {
-    let sz:f64 = vec.len() as f64;
+    let sz: f64 = vec.len() as f64;
     let mut tmpsum: f64 = 0.0;
     let sdp = sd.powf(4.0);
 
@@ -519,9 +540,9 @@ fn kurtosis(vec: &Vec<f64>, mean: &f64, sd: &f64) -> f64 {
         tmpsum += (v - mean).powf(4.0) / sdp;
     }
 
-    (((sz * (sz + 1.0)) / ((sz - 1.0) * (sz - 2.0) * (sz - 3.0))) * tmpsum) - ((3.0 * (sz - 1.0) * (sz - 1.0)) / ((sz - 2.0) * (sz - 3.0)))
+    (((sz * (sz + 1.0)) / ((sz - 1.0) * (sz - 2.0) * (sz - 3.0))) * tmpsum)
+        - ((3.0 * (sz - 1.0) * (sz - 1.0)) / ((sz - 2.0) * (sz - 3.0)))
 }
-
 
 // Rankify
 fn rankify(x: &Vec<f64>) -> Vec<f64> {
@@ -809,9 +830,7 @@ fn science_pretty_format(value: f64, digits: usize) -> String {
     if value.abs() == 0.0 {
         return "0".to_string();
     }
-    if value.abs() >= 10000.0
-        || value.abs() < 0.001
-    {
+    if value.abs() >= 10000.0 || value.abs() < 0.001 {
         return format!("{:.*e}", digits, value).to_string();
     }
     format!("{:.*}", digits, value)
