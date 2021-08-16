@@ -183,6 +183,22 @@ fn calculate(p: &mut Parameters) {
     let sk_b = skewness(&b_v, &mean_b, &sd_b);
     let kt_a = kurtosis(&a_v, &mean_a, &sd_a);
     let kt_b = kurtosis(&b_v, &mean_b, &sd_b);
+    let mut f: f64 = 1.0;
+    let mut f_a: usize = a_v.len();
+    let mut f_b: usize = b_v.len();
+
+    if sd_a > sd_b {
+        f = (sd_a * sd_a) / (sd_b * sd_b);
+        f_a = a_v.len();
+        f_b = b_v.len();
+    }
+    if sd_a < sd_b {
+        f = (sd_b * sd_b) / (sd_a * sd_a);
+        f_a = b_v.len();
+        f_b = a_v.len();
+    }
+
+    let f_p = p_from_f(f, f_a - 1, f_b - 1);
 
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
@@ -336,6 +352,21 @@ fn calculate(p: &mut Parameters) {
     out.push_str("\n************************************\n");
 
     out.push_str(&format!("Cohen's d: \t{}\n", &science_pretty_format(d, 2)));
+
+    out.push_str("\n************************************\n");
+    out.push_str(&format!(
+        "F-Test:   \t{}\n",
+        &science_pretty_format(1.0 / f, 4)
+    ));
+    out.push_str(&format!(
+        "\np-Value: \t{}\n",
+        &science_pretty_format(f_p * 2.0, 4)
+    ));
+    if f_p <= clevel {
+        out.push_str("Sig:       \tSignificant\n");
+    } else {
+        out.push_str("Sig:       \tNot Significant\n");
+    }
 
     out.push_str("\n************************************\n");
 
@@ -648,6 +679,76 @@ fn l_gamma(x: f64) -> f64 {
     }
 
     logsqrttwopi + (x + 0.5) * y.ln() - y + (series / x).ln()
+}
+
+// Calculate a p value from F and A count, B count
+fn p_from_f(f: f64, df1: usize, df2: usize) -> f64 {
+    1.0 - incomplete_beta(
+        df1 as f64 * f / (df1 as f64 * f + df2 as f64),
+        0.5 * df1 as f64,
+        0.5 * df2 as f64,
+    )
+}
+
+// Calculate incomplete Beta
+fn incomplete_beta(x: f64, a: f64, b: f64) -> f64 {
+    if (x - 0.0).abs() < f64::EPSILON {
+        return 0.0;
+    }
+
+    if (x - 1.0).abs() < f64::EPSILON {
+        return 1.0;
+    }
+
+    let l_beta: f64 = l_gamma(a + b) - l_gamma(a) - l_gamma(b) + a * x.ln() + b * (1.0 - x).ln();
+
+    if x < (a + 1.0) / (a + b + 2.0) {
+        return l_beta.exp() * contfrac_beta(x, a, b) / a;
+    } else {
+        return 1.0 - l_beta.exp() * contfrac_beta(1.0 - x, b, a) / b;
+    }
+}
+
+fn contfrac_beta(x: f64, a: f64, b: f64) -> f64 {
+    let itmax: usize = 200;
+    let eps: f64 = 3.0e-7;
+
+    let mut bm = 1.0;
+    let mut az = 1.0;
+    let mut am = 1.0;
+    let qab = a + b;
+    let qap = a + 1.0;
+    let qam = a - 1.0;
+    let mut bz = 1.0 - qab * x / qap;
+    let mut em: f64;
+    let mut tem: f64;
+    let mut d: f64;
+    let mut ap: f64;
+    let mut bp: f64;
+    let mut app: f64;
+    let mut bpp: f64;
+    let mut aold: f64;
+
+    for i in 0..itmax {
+        em = i as f64 + 1.0;
+        tem = em + em;
+        d = em * (b - em) * x / ((qam + tem) * (a + tem));
+        ap = az + d * am;
+        bp = bz + d * bm;
+        d = -(a + em) * (qab + em) * x / ((qap + tem) * (a + tem));
+        app = ap + d * az;
+        bpp = bp + d * bz;
+        aold = az;
+        am = ap / bpp;
+        bm = bp / bpp;
+        az = app / bpp;
+        bz = 1.0;
+        if (az - aold).abs() < eps * az.abs() {
+            return az;
+        }
+    }
+
+    return 0.0;
 }
 
 // Calculate P Value from T statistic
