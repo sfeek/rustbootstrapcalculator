@@ -1,4 +1,6 @@
 #![windows_subsystem = "windows"]
+#![allow(clippy::many_single_char_names)]
+#![allow(clippy::manual_range_contains)]
 use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, text::*, window::*};
 use rand::Rng;
 use std::cmp::Ordering;
@@ -33,7 +35,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Mean Difference & Spearman Calculator v2.8",
+        "Bootstrap Mean Difference & Spearman Calculator v2.9",
     );
 
     // Fill the form structure
@@ -662,13 +664,13 @@ fn r_value(x: Vec<f64>, y: Vec<f64>) -> f64 {
 fn l_gamma(x: f64) -> f64 {
     let coef: [f64; 6] = [
         76.18009172947146,
-        -86.50532032941677,
+        -86.50532032941678,
         24.01409824083091,
         -1.231739572450155,
-        0.1208650973866179E-2,
+        1.208650973866179E-3,
         -0.5395239384953E-5,
     ];
-    let logsqrttwopi: f64 = 0.91893853320467274178;
+    let logsqrttwopi: f64 = 0.9189385332046728;
     let y: f64 = x + 5.5;
     let mut denom: f64 = x + 1.0;
     let mut series: f64 = 1.000000000190015;
@@ -703,9 +705,9 @@ fn incomplete_beta(x: f64, a: f64, b: f64) -> f64 {
     let l_beta: f64 = l_gamma(a + b) - l_gamma(a) - l_gamma(b) + a * x.ln() + b * (1.0 - x).ln();
 
     if x < (a + 1.0) / (a + b + 2.0) {
-        return l_beta.exp() * contfrac_beta(x, a, b) / a;
+        l_beta.exp() * contfrac_beta(x, a, b) / a
     } else {
-        return 1.0 - l_beta.exp() * contfrac_beta(1.0 - x, b, a) / b;
+        1.0 - l_beta.exp() * contfrac_beta(1.0 - x, b, a) / b
     }
 }
 
@@ -748,7 +750,7 @@ fn contfrac_beta(x: f64, a: f64, b: f64) -> f64 {
         }
     }
 
-    return 0.0;
+    0.0
 }
 
 // Calculate P Value from T statistic
@@ -760,7 +762,7 @@ fn p_from_t(ws: f64, dof: f64) -> f64 {
         return 1.0;
     }
 
-    let beta = l_gamma(a) + 0.57236494292470009 - l_gamma(a + 0.5);
+    let beta = l_gamma(a) + 0.5723649429247001 - l_gamma(a + 0.5);
     let acu = 0.1E-14;
     let mut ai: f64;
     let mut cx: f64;
