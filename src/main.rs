@@ -35,7 +35,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Mean Difference & Spearman Calculator v2.9",
+        "Bootstrap Statistics Calculator v3.0",
     );
 
     // Fill the form structure
@@ -178,6 +178,9 @@ fn calculate(p: &mut Parameters) {
     let mean_d = mean_b - mean_a;
     let sd_a = sd_sample(&a_v, &mean_a);
     let sd_b = sd_sample(&b_v, &mean_b);
+    let sdp_a = sd_pop(&a_v, &mean_a);
+    let sdp_b = sd_pop(&b_v, &mean_b);
+
     let sd_d = sd_b - sd_a;
     let sd_pooled = ((sd_a * sd_a + sd_b * sd_b) / 2.0).sqrt();
     let d = mean_d / sd_pooled;
@@ -188,6 +191,11 @@ fn calculate(p: &mut Parameters) {
     let mut f: f64 = 1.0;
     let mut f_a: usize = a_v.len();
     let mut f_b: usize = b_v.len();
+    let max_a = a_v.iter().copied().fold(f64::NEG_INFINITY,f64::max);
+    let max_b = b_v.iter().copied().fold(f64::NEG_INFINITY,f64::max);
+    let min_a = a_v.iter().copied().fold(f64::INFINITY,f64::min);
+    let min_b = b_v.iter().copied().fold(f64::INFINITY,f64::min);
+
 
     if sd_a > sd_b {
         f = (sd_a * sd_a) / (sd_b * sd_b);
@@ -204,6 +212,12 @@ fn calculate(p: &mut Parameters) {
 
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
+
+    out.push_str(&format!("\nMin A:   \t{}\n", &science_pretty_format(min_a, 6)));
+    out.push_str(&format!("Max A:   \t{}\n", &science_pretty_format(max_a, 6)));
+    out.push_str(&format!("\nMin B:   \t{}\n", &science_pretty_format(min_b, 6)));
+    out.push_str(&format!("Max B:   \t{}\n", &science_pretty_format(max_b, 6)));
+
     out.push_str("\n************************************\n");
 
     // Handle one or two tailed data Mean
@@ -282,6 +296,14 @@ fn calculate(p: &mut Parameters) {
         }
     }
 
+    if mean_a > mean_b {
+        out.push_str(&format!("\n{}%:    \tDecrease\n", &science_pretty_format(per_diff(&mean_a,&mean_b), 1)));
+    }
+
+    if mean_a < mean_b {
+        out.push_str(&format!("\n{}%:    \tIncrease\n", &science_pretty_format(per_diff(&mean_a,&mean_b), 1)));
+    }
+
     out.push_str("\n************************************\n");
 
     // Handle one or two tailed data SD
@@ -339,17 +361,44 @@ fn calculate(p: &mut Parameters) {
         }
     }
 
+    if sd_a > sd_b {
+        out.push_str(&format!("\n{}%:    \tDecrease\n", &science_pretty_format(per_diff(&sd_a,&sd_b), 1)));
+    }
+
+    if sd_a < sd_b {
+        out.push_str(&format!("\n{}%:    \tIncrease\n", &science_pretty_format(per_diff(&sd_a,&sd_b), 1)));
+    }
+
     out.push_str("\n************************************\n");
+
+    let var_a = sdp_a * sdp_a;
+    let var_b = sdp_b * sdp_b;
+
+    out.push_str(&format!("Variance A:    \t{}\n", &science_pretty_format(var_a, 6)));
+    out.push_str(&format!("Variance B:    \t{}\n", &science_pretty_format(var_b, 6)));
+
+    out.push_str("\n************************************\n");
+
+    let med_a = median(&a_v);
+    let med_b = median(&b_v);
 
     out.push_str(&format!(
         "Median A:    \t{}\n",
-        &science_pretty_format(median(&a_v), 6)
+        &science_pretty_format(med_a, 6)
     ));
 
     out.push_str(&format!(
         "Median B:    \t{}\n",
-        &science_pretty_format(median(&b_v), 6)
+        &science_pretty_format(med_b, 6)
     ));
+
+    if med_a > med_b {
+        out.push_str(&format!("\n{}%:    \tDecrease\n", &science_pretty_format(per_diff(&med_a,&med_b), 1)));
+    }
+
+    if med_a < med_b {
+        out.push_str(&format!("\n{}%:    \tIncrease\n", &science_pretty_format(per_diff(&med_a,&med_b), 1)));
+    }
 
     out.push_str("\n************************************\n");
 
@@ -372,13 +421,16 @@ fn calculate(p: &mut Parameters) {
 
     out.push_str("\n************************************\n");
 
+    let se_a = sd_a / (a_v.len() as f64).sqrt();
+    let se_b = sd_b / (b_v.len() as f64).sqrt();
+
     out.push_str(&format!(
         "SE A:    \t{}\n",
-        &science_pretty_format(sd_a / (a_v.len() as f64).sqrt(), 6)
+        &science_pretty_format(se_a, 6)
     ));
     out.push_str(&format!(
         "SE B:    \t{}\n",
-        &science_pretty_format(sd_b / (b_v.len() as f64).sqrt(), 6)
+        &science_pretty_format(se_b, 6)
     ));
 
     out.push_str("\n************************************\n");
@@ -557,6 +609,19 @@ fn median(vec: &[f64]) -> f64 {
     v[vec.len() / 2]
 }
 
+// Calculate Percent difference
+fn per_diff (f: &f64, s: &f64) -> f64 {
+    if (f - s).abs() < f64::EPSILON {
+        return 0.0;
+    }
+
+    if f < s {
+        (s - f) / f * 100.0
+    }else{
+        (f - s) / f * 100.0
+    }
+}
+
 // Comparison function for vec<64> sorting
 fn cmp_f64(a: &f64, b: &f64) -> Ordering {
     if a.is_nan() {
@@ -581,6 +646,16 @@ fn sd_sample(x: &[f64], mean: &f64) -> f64 {
         sd += (v - mean).powf(2.0);
     }
     (sd / (x.len() - 1) as f64).sqrt()
+}
+
+// Calculate SD of a sample
+fn sd_pop(x: &[f64], mean: &f64) -> f64 {
+    let mut sd: f64 = 0.0;
+
+    for v in x.iter() {
+        sd += (v - mean).powf(2.0);
+    }
+    (sd / x.len() as f64).sqrt()
 }
 
 // Calculate Skewness
