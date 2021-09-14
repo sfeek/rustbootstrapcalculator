@@ -35,7 +35,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Statistics Calculator v3.0",
+        "Bootstrap Statistics Calculator v3.01",
     );
 
     // Fill the form structure
@@ -296,13 +296,7 @@ fn calculate(p: &mut Parameters) {
         }
     }
 
-    if mean_a > mean_b {
-        out.push_str(&format!("\n{}%:    \tDecrease\n", &science_pretty_format(per_diff(&mean_a,&mean_b), 1)));
-    }
-
-    if mean_a < mean_b {
-        out.push_str(&format!("\n{}%:    \tIncrease\n", &science_pretty_format(per_diff(&mean_a,&mean_b), 1)));
-    }
+    out.push_str(&format!("\n% Change: \t{}\n", &science_pretty_format(per_change(&mean_a,&mean_b), 1)));
 
     out.push_str("\n************************************\n");
 
@@ -361,13 +355,7 @@ fn calculate(p: &mut Parameters) {
         }
     }
 
-    if sd_a > sd_b {
-        out.push_str(&format!("\n{}%:    \tDecrease\n", &science_pretty_format(per_diff(&sd_a,&sd_b), 1)));
-    }
-
-    if sd_a < sd_b {
-        out.push_str(&format!("\n{}%:    \tIncrease\n", &science_pretty_format(per_diff(&sd_a,&sd_b), 1)));
-    }
+    out.push_str(&format!("\n% Change: \t{}\n", &science_pretty_format(per_change(&sd_a,&sd_b), 1)));
 
     out.push_str("\n************************************\n");
 
@@ -392,13 +380,7 @@ fn calculate(p: &mut Parameters) {
         &science_pretty_format(med_b, 6)
     ));
 
-    if med_a > med_b {
-        out.push_str(&format!("\n{}%:    \tDecrease\n", &science_pretty_format(per_diff(&med_a,&med_b), 1)));
-    }
-
-    if med_a < med_b {
-        out.push_str(&format!("\n{}%:    \tIncrease\n", &science_pretty_format(per_diff(&med_a,&med_b), 1)));
-    }
+    out.push_str(&format!("\n% Change: \t{}\n", &science_pretty_format(per_change(&med_a,&med_b), 1)));
 
     out.push_str("\n************************************\n");
 
@@ -610,16 +592,8 @@ fn median(vec: &[f64]) -> f64 {
 }
 
 // Calculate Percent difference
-fn per_diff (f: &f64, s: &f64) -> f64 {
-    if (f - s).abs() < f64::EPSILON {
-        return 0.0;
-    }
-
-    if f < s {
-        (s - f) / f * 100.0
-    }else{
-        (f - s) / f * 100.0
-    }
+fn per_change (f: &f64, s: &f64) -> f64 {
+    (s - f) / f.abs() * 100.0
 }
 
 // Comparison function for vec<64> sorting
