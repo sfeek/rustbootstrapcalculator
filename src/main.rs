@@ -35,7 +35,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Statistics Calculator v3.01",
+        "Bootstrap Statistics Calculator v3.02",
     );
 
     // Fill the form structure
@@ -213,10 +213,10 @@ fn calculate(p: &mut Parameters) {
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
 
-    out.push_str(&format!("\nMin A:   \t{}\n", &science_pretty_format(min_a, 6)));
-    out.push_str(&format!("Max A:   \t{}\n", &science_pretty_format(max_a, 6)));
-    out.push_str(&format!("\nMin B:   \t{}\n", &science_pretty_format(min_b, 6)));
-    out.push_str(&format!("Max B:   \t{}\n", &science_pretty_format(max_b, 6)));
+    out.push_str(&format!("\nMin A:    \t{}\n", &science_pretty_format(min_a, 6)));
+    out.push_str(&format!("Max A:    \t{}\n", &science_pretty_format(max_a, 6)));
+    out.push_str(&format!("\nMin B:    \t{}\n", &science_pretty_format(min_b, 6)));
+    out.push_str(&format!("Max B:    \t{}\n", &science_pretty_format(max_b, 6)));
 
     out.push_str("\n************************************\n");
 
@@ -308,8 +308,8 @@ fn calculate(p: &mut Parameters) {
         let l = sd_d - z * sdmeanresults.sd;
         let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
 
-        out.push_str(&format!("SD A:    \t{}\n", &science_pretty_format(sd_a, 6)));
-        out.push_str(&format!("SD B:    \t{}\n", &science_pretty_format(sd_b, 3)));
+        out.push_str(&format!("SD A:     \t{}\n", &science_pretty_format(sd_a, 6)));
+        out.push_str(&format!("SD B:     \t{}\n", &science_pretty_format(sd_b, 3)));
         out.push('\n');
         out.push_str(&format!("Low Diff: \t{}\n", &science_pretty_format(l, 6)));
         out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
@@ -330,8 +330,8 @@ fn calculate(p: &mut Parameters) {
         let l = sd_d - z * sdmeanresults.sd;
         let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
 
-        out.push_str(&format!("SD A:    \t{}\n", &science_pretty_format(sd_a, 6)));
-        out.push_str(&format!("SD B:    \t{}\n", &science_pretty_format(sd_b, 6)));
+        out.push_str(&format!("SD A:     \t{}\n", &science_pretty_format(sd_a, 6)));
+        out.push_str(&format!("SD B:     \t{}\n", &science_pretty_format(sd_b, 6)));
         out.push('\n');
 
         if sd_a > sd_b {
@@ -407,11 +407,11 @@ fn calculate(p: &mut Parameters) {
     let se_b = sd_b / (b_v.len() as f64).sqrt();
 
     out.push_str(&format!(
-        "SE A:    \t{}\n",
+        "SE A:     \t{}\n",
         &science_pretty_format(se_a, 6)
     ));
     out.push_str(&format!(
-        "SE B:    \t{}\n",
+        "SE B:     \t{}\n",
         &science_pretty_format(se_b, 6)
     ));
 
