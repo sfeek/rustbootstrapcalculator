@@ -35,7 +35,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Statistics Calculator v3.02",
+        "Bootstrap Statistics Calculator v3.03",
     );
 
     // Fill the form structure
@@ -395,7 +395,7 @@ fn calculate(p: &mut Parameters) {
         "\np-Value: \t{}\n",
         &science_pretty_format(f_p * 2.0, 4)
     ));
-    if f_p <= clevel {
+    if f_p * 2.0 <= clevel {
         out.push_str("Sig:       \tSignificant\n");
     } else {
         out.push_str("Sig:       \tNot Significant\n");
