@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 #![allow(clippy::many_single_char_names)]
 #![allow(clippy::manual_range_contains)]
 use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, text::*, window::*};
@@ -20,6 +20,14 @@ struct Parameters {
 }
 
 #[derive(Clone, Debug)]
+// Define a struct for CI results
+struct CIresults {
+    u: f64,
+    l: f64,
+    m: f64,
+}
+
+#[derive(Clone, Debug)]
 // Define a struct for our dmeans and dsds
 struct Sdmeanresults {
     mean: f64,
@@ -35,7 +43,7 @@ fn main() {
         100,
         737,
         530,
-        "Bootstrap Statistics Calculator v3.03",
+        "Bootstrap Statistics Calculator v3.05",
     );
 
     // Fill the form structure
@@ -210,6 +218,9 @@ fn calculate(p: &mut Parameters) {
 
     let f_p = p_from_f(f, f_a - 1, f_b - 1);
 
+    let ca = ci(&a_v,iterations,clevel);
+    let cb = ci(&b_v,iterations,clevel);
+
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
 
@@ -217,6 +228,11 @@ fn calculate(p: &mut Parameters) {
     out.push_str(&format!("Max A:    \t{}\n", &science_pretty_format(max_a, 6)));
     out.push_str(&format!("\nMin B:    \t{}\n", &science_pretty_format(min_b, 6)));
     out.push_str(&format!("Max B:    \t{}\n", &science_pretty_format(max_b, 6)));
+
+    out.push_str(&format!("\nCI Min A:    \t{}\n", &science_pretty_format(ca.l, 6)));
+    out.push_str(&format!("CI Max A:    \t{}\n", &science_pretty_format(ca.u, 6)));
+    out.push_str(&format!("\nCI Min B:    \t{}\n", &science_pretty_format(cb.l, 6)));
+    out.push_str(&format!("CI Max B:    \t{}\n", &science_pretty_format(cb.u, 6)));
 
     out.push_str("\n************************************\n");
 
@@ -553,6 +569,27 @@ fn unpaired_data(a_v: &[f64], b_v: &[f64], iterations: i32) -> Sdmeanresults {
         mean: sd_sample(&dmeans, &mean(&dmeans)),
         sd: sd_sample(&dsds, &mean(&dsds)),
     }
+}
+
+// Calculate a bootstrapped confidence interval for an array of data
+fn ci(v: &[f64],iterations: i32,clevel: f64) -> CIresults 
+{
+    let mut tmp: Vec<f64> = Vec::new();
+    let mut means: Vec<f64> = Vec::new();
+
+    let len = v.len();
+
+    for _i in 0..iterations {
+        tmp.clear();
+        for _j in 0..len {
+            tmp.push(v[rand::thread_rng().gen_range(0..len)]);
+        }
+        means.push(mean(&tmp));
+    }
+
+    means.sort_by(cmp_f64);
+
+    CIresults { m: (means[(iterations / 2) as usize]), l: (means[(iterations as f64 * clevel) as usize]), u: (means[(iterations as f64 *(1.0-clevel)) as usize]) }
 }
 
 // Convert CSV from the main windows to arrays of floats, also clean up stray whitespace
