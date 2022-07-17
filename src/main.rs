@@ -1,4 +1,4 @@
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 #![allow(clippy::many_single_char_names)]
 #![allow(clippy::manual_range_contains)]
 use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, text::*, window::*};
@@ -22,9 +22,12 @@ struct Parameters {
 #[derive(Clone, Debug)]
 // Define a struct for CI results
 struct CIresults {
-    u: f64,
-    l: f64,
-    m: f64,
+    mu: f64,
+    ml: f64,
+    mm: f64,
+    su: f64,
+    sl: f64,
+    sm: f64,
 }
 
 #[derive(Clone, Debug)]
@@ -38,13 +41,7 @@ fn main() {
     let app = App::default();
 
     // Main Window
-    let mut wind = Window::new(
-        100,
-        100,
-        737,
-        530,
-        "Bootstrap Statistics Calculator v3.05",
-    );
+    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.05");
 
     // Fill the form structure
     let mut parameters = Parameters {
@@ -181,8 +178,11 @@ fn calculate(p: &mut Parameters) {
     };
 
     // Calculate stats for the data
-    let mean_a = mean(&a_v);
-    let mean_b = mean(&b_v);
+    let ca = ci(&a_v, iterations, clevel);
+    let cb = ci(&b_v, iterations, clevel);
+
+    let mean_a = ca.mm;
+    let mean_b = cb.mm;
     let mean_d = mean_b - mean_a;
     let sd_a = sd_sample(&a_v, &mean_a);
     let sd_b = sd_sample(&b_v, &mean_b);
@@ -199,11 +199,10 @@ fn calculate(p: &mut Parameters) {
     let mut f: f64 = 1.0;
     let mut f_a: usize = a_v.len();
     let mut f_b: usize = b_v.len();
-    let max_a = a_v.iter().copied().fold(f64::NEG_INFINITY,f64::max);
-    let max_b = b_v.iter().copied().fold(f64::NEG_INFINITY,f64::max);
-    let min_a = a_v.iter().copied().fold(f64::INFINITY,f64::min);
-    let min_b = b_v.iter().copied().fold(f64::INFINITY,f64::min);
-
+    let max_a = a_v.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let max_b = b_v.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let min_a = a_v.iter().copied().fold(f64::INFINITY, f64::min);
+    let min_b = b_v.iter().copied().fold(f64::INFINITY, f64::min);
 
     if sd_a > sd_b {
         f = (sd_a * sd_a) / (sd_b * sd_b);
@@ -218,21 +217,43 @@ fn calculate(p: &mut Parameters) {
 
     let f_p = p_from_f(f, f_a - 1, f_b - 1);
 
-    let ca = ci(&a_v,iterations,clevel);
-    let cb = ci(&b_v,iterations,clevel);
+    
 
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
 
-    out.push_str(&format!("\nMin A:    \t{}\n", &science_pretty_format(min_a, 6)));
-    out.push_str(&format!("Max A:    \t{}\n", &science_pretty_format(max_a, 6)));
-    out.push_str(&format!("\nMin B:    \t{}\n", &science_pretty_format(min_b, 6)));
-    out.push_str(&format!("Max B:    \t{}\n", &science_pretty_format(max_b, 6)));
-
-    out.push_str(&format!("\nCI Min A:    \t{}\n", &science_pretty_format(ca.l, 6)));
-    out.push_str(&format!("CI Max A:    \t{}\n", &science_pretty_format(ca.u, 6)));
-    out.push_str(&format!("\nCI Min B:    \t{}\n", &science_pretty_format(cb.l, 6)));
-    out.push_str(&format!("CI Max B:    \t{}\n", &science_pretty_format(cb.u, 6)));
+    out.push_str(&format!(
+        "\nMin A:    \t{}\n",
+        &science_pretty_format(min_a, 6)
+    ));
+    out.push_str(&format!(
+        "Max A:    \t{}\n",
+        &science_pretty_format(max_a, 6)
+    ));
+    out.push_str(&format!(
+        "\nMin B:    \t{}\n",
+        &science_pretty_format(min_b, 6)
+    ));
+    out.push_str(&format!(
+        "Max B:    \t{}\n",
+        &science_pretty_format(max_b, 6)
+    ));
+    out.push_str(&format!(
+        "\nCI Min A:    \t{}\n",
+        &science_pretty_format(ca.ml, 6)
+    ));
+    out.push_str(&format!(
+        "CI Max A:    \t{}\n",
+        &science_pretty_format(ca.mu, 6)
+    ));
+    out.push_str(&format!(
+        "\nCI Min B:    \t{}\n",
+        &science_pretty_format(cb.ml, 6)
+    ));
+    out.push_str(&format!(
+        "CI Max B:    \t{}\n",
+        &science_pretty_format(cb.mu, 6)
+    ));
 
     out.push_str("\n************************************\n");
 
@@ -312,7 +333,10 @@ fn calculate(p: &mut Parameters) {
         }
     }
 
-    out.push_str(&format!("\n% Change: \t{}\n", &science_pretty_format(per_change(&mean_a,&mean_b), 1)));
+    out.push_str(&format!(
+        "\n% Change: \t{}\n",
+        &science_pretty_format(per_change(&mean_a, &mean_b), 1)
+    ));
 
     out.push_str("\n************************************\n");
 
@@ -324,8 +348,14 @@ fn calculate(p: &mut Parameters) {
         let l = sd_d - z * sdmeanresults.sd;
         let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
 
-        out.push_str(&format!("SD A:     \t{}\n", &science_pretty_format(sd_a, 6)));
-        out.push_str(&format!("SD B:     \t{}\n", &science_pretty_format(sd_b, 3)));
+        out.push_str(&format!(
+            "SD A:     \t{}\n",
+            &science_pretty_format(sd_a, 6)
+        ));
+        out.push_str(&format!(
+            "SD B:     \t{}\n",
+            &science_pretty_format(sd_b, 3)
+        ));
         out.push('\n');
         out.push_str(&format!("Low Diff: \t{}\n", &science_pretty_format(l, 6)));
         out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
@@ -346,8 +376,14 @@ fn calculate(p: &mut Parameters) {
         let l = sd_d - z * sdmeanresults.sd;
         let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
 
-        out.push_str(&format!("SD A:     \t{}\n", &science_pretty_format(sd_a, 6)));
-        out.push_str(&format!("SD B:     \t{}\n", &science_pretty_format(sd_b, 6)));
+        out.push_str(&format!(
+            "SD A:     \t{}\n",
+            &science_pretty_format(sd_a, 6)
+        ));
+        out.push_str(&format!(
+            "SD B:     \t{}\n",
+            &science_pretty_format(sd_b, 6)
+        ));
         out.push('\n');
 
         if sd_a > sd_b {
@@ -371,15 +407,24 @@ fn calculate(p: &mut Parameters) {
         }
     }
 
-    out.push_str(&format!("\n% Change: \t{}\n", &science_pretty_format(per_change(&sd_a,&sd_b), 1)));
+    out.push_str(&format!(
+        "\n% Change: \t{}\n",
+        &science_pretty_format(per_change(&sd_a, &sd_b), 1)
+    ));
 
     out.push_str("\n************************************\n");
 
     let var_a = sdp_a * sdp_a;
     let var_b = sdp_b * sdp_b;
 
-    out.push_str(&format!("Variance A:    \t{}\n", &science_pretty_format(var_a, 6)));
-    out.push_str(&format!("Variance B:    \t{}\n", &science_pretty_format(var_b, 6)));
+    out.push_str(&format!(
+        "Variance A:    \t{}\n",
+        &science_pretty_format(var_a, 6)
+    ));
+    out.push_str(&format!(
+        "Variance B:    \t{}\n",
+        &science_pretty_format(var_b, 6)
+    ));
 
     out.push_str("\n************************************\n");
 
@@ -396,7 +441,10 @@ fn calculate(p: &mut Parameters) {
         &science_pretty_format(med_b, 6)
     ));
 
-    out.push_str(&format!("\n% Change: \t{}\n", &science_pretty_format(per_change(&med_a,&med_b), 1)));
+    out.push_str(&format!(
+        "\n% Change: \t{}\n",
+        &science_pretty_format(per_change(&med_a, &med_b), 1)
+    ));
 
     out.push_str("\n************************************\n");
 
@@ -571,11 +619,11 @@ fn unpaired_data(a_v: &[f64], b_v: &[f64], iterations: i32) -> Sdmeanresults {
     }
 }
 
-// Calculate a bootstrapped confidence interval for an array of data
-fn ci(v: &[f64],iterations: i32,clevel: f64) -> CIresults 
-{
+// Calculate a bootstrapped mean and confidence interval for an array of data
+fn ci(v: &[f64], iterations: i32, clevel: f64) -> CIresults {
     let mut tmp: Vec<f64> = Vec::new();
     let mut means: Vec<f64> = Vec::new();
+    let mut sds: Vec<f64> = Vec::new();
 
     let len = v.len();
 
@@ -584,12 +632,22 @@ fn ci(v: &[f64],iterations: i32,clevel: f64) -> CIresults
         for _j in 0..len {
             tmp.push(v[rand::thread_rng().gen_range(0..len)]);
         }
-        means.push(mean(&tmp));
+        let m: f64 = mean(&tmp);
+        means.push(m);
+        sds.push(sd_sample(&tmp, &m));
     }
 
     means.sort_by(cmp_f64);
+    sds.sort_by(cmp_f64);
 
-    CIresults { m: (means[(iterations / 2) as usize]), l: (means[(iterations as f64 * clevel) as usize]), u: (means[(iterations as f64 *(1.0-clevel)) as usize]) }
+    CIresults {
+        mm: (means[(iterations / 2) as usize]),
+        ml: (means[(iterations as f64 * clevel) as usize]),
+        mu: (means[(iterations as f64 * (1.0 - clevel)) as usize]),
+        sm: (sds[(iterations / 2) as usize]),
+        sl: (sds[(iterations as f64 * clevel) as usize]),
+        su: (sds[(iterations as f64 * (1.0 - clevel)) as usize]),
+    }
 }
 
 // Convert CSV from the main windows to arrays of floats, also clean up stray whitespace
@@ -629,7 +687,7 @@ fn median(vec: &[f64]) -> f64 {
 }
 
 // Calculate Percent difference
-fn per_change (f: &f64, s: &f64) -> f64 {
+fn per_change(f: &f64, s: &f64) -> f64 {
     (s - f) / f.abs() * 100.0
 }
 
