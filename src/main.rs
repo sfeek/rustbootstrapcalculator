@@ -1,4 +1,4 @@
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 #![allow(clippy::many_single_char_names)]
 #![allow(clippy::manual_range_contains)]
 use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, text::*, window::*};
@@ -30,13 +30,7 @@ fn main() {
     let app = App::default();
 
     // Main Window
-    let mut wind = Window::new(
-        100,
-        100,
-        737,
-        530,
-        "Bootstrap Statistics Calculator v3.03",
-    );
+    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.03");
 
     // Fill the form structure
     let mut parameters = Parameters {
@@ -191,11 +185,10 @@ fn calculate(p: &mut Parameters) {
     let mut f: f64 = 1.0;
     let mut f_a: usize = a_v.len();
     let mut f_b: usize = b_v.len();
-    let max_a = a_v.iter().copied().fold(f64::NEG_INFINITY,f64::max);
-    let max_b = b_v.iter().copied().fold(f64::NEG_INFINITY,f64::max);
-    let min_a = a_v.iter().copied().fold(f64::INFINITY,f64::min);
-    let min_b = b_v.iter().copied().fold(f64::INFINITY,f64::min);
-
+    let max_a = a_v.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let max_b = b_v.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    let min_a = a_v.iter().copied().fold(f64::INFINITY, f64::min);
+    let min_b = b_v.iter().copied().fold(f64::INFINITY, f64::min);
 
     if sd_a > sd_b {
         f = (sd_a * sd_a) / (sd_b * sd_b);
@@ -213,10 +206,22 @@ fn calculate(p: &mut Parameters) {
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
 
-    out.push_str(&format!("\nMin A:    \t{}\n", &science_pretty_format(min_a, 6)));
-    out.push_str(&format!("Max A:    \t{}\n", &science_pretty_format(max_a, 6)));
-    out.push_str(&format!("\nMin B:    \t{}\n", &science_pretty_format(min_b, 6)));
-    out.push_str(&format!("Max B:    \t{}\n", &science_pretty_format(max_b, 6)));
+    out.push_str(&format!(
+        "\nMin A:    \t{}\n",
+        &science_pretty_format(min_a, 6)
+    ));
+    out.push_str(&format!(
+        "Max A:    \t{}\n",
+        &science_pretty_format(max_a, 6)
+    ));
+    out.push_str(&format!(
+        "\nMin B:    \t{}\n",
+        &science_pretty_format(min_b, 6)
+    ));
+    out.push_str(&format!(
+        "Max B:    \t{}\n",
+        &science_pretty_format(max_b, 6)
+    ));
 
     out.push_str("\n************************************\n");
 
@@ -296,7 +301,10 @@ fn calculate(p: &mut Parameters) {
         }
     }
 
-    out.push_str(&format!("\n% Change: \t{}\n", &science_pretty_format(per_change(&mean_a,&mean_b), 1)));
+    out.push_str(&format!(
+        "\n% Change: \t{}\n",
+        &science_pretty_format(per_change(&mean_a, &mean_b), 1)
+    ));
 
     out.push_str("\n************************************\n");
 
@@ -308,8 +316,14 @@ fn calculate(p: &mut Parameters) {
         let l = sd_d - z * sdmeanresults.sd;
         let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
 
-        out.push_str(&format!("SD A:     \t{}\n", &science_pretty_format(sd_a, 6)));
-        out.push_str(&format!("SD B:     \t{}\n", &science_pretty_format(sd_b, 3)));
+        out.push_str(&format!(
+            "SD A:     \t{}\n",
+            &science_pretty_format(sd_a, 6)
+        ));
+        out.push_str(&format!(
+            "SD B:     \t{}\n",
+            &science_pretty_format(sd_b, 3)
+        ));
         out.push('\n');
         out.push_str(&format!("Low Diff: \t{}\n", &science_pretty_format(l, 6)));
         out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
@@ -330,8 +344,14 @@ fn calculate(p: &mut Parameters) {
         let l = sd_d - z * sdmeanresults.sd;
         let pv = p_from_ci(l, u, sd_d, 1.0 - clevel);
 
-        out.push_str(&format!("SD A:     \t{}\n", &science_pretty_format(sd_a, 6)));
-        out.push_str(&format!("SD B:     \t{}\n", &science_pretty_format(sd_b, 6)));
+        out.push_str(&format!(
+            "SD A:     \t{}\n",
+            &science_pretty_format(sd_a, 6)
+        ));
+        out.push_str(&format!(
+            "SD B:     \t{}\n",
+            &science_pretty_format(sd_b, 6)
+        ));
         out.push('\n');
 
         if sd_a > sd_b {
@@ -355,15 +375,24 @@ fn calculate(p: &mut Parameters) {
         }
     }
 
-    out.push_str(&format!("\n% Change: \t{}\n", &science_pretty_format(per_change(&sd_a,&sd_b), 1)));
+    out.push_str(&format!(
+        "\n% Change: \t{}\n",
+        &science_pretty_format(per_change(&sd_a, &sd_b), 1)
+    ));
 
     out.push_str("\n************************************\n");
 
     let var_a = sdp_a * sdp_a;
     let var_b = sdp_b * sdp_b;
 
-    out.push_str(&format!("Variance A:    \t{}\n", &science_pretty_format(var_a, 6)));
-    out.push_str(&format!("Variance B:    \t{}\n", &science_pretty_format(var_b, 6)));
+    out.push_str(&format!(
+        "Variance A:    \t{}\n",
+        &science_pretty_format(var_a, 6)
+    ));
+    out.push_str(&format!(
+        "Variance B:    \t{}\n",
+        &science_pretty_format(var_b, 6)
+    ));
 
     out.push_str("\n************************************\n");
 
@@ -380,7 +409,10 @@ fn calculate(p: &mut Parameters) {
         &science_pretty_format(med_b, 6)
     ));
 
-    out.push_str(&format!("\n% Change: \t{}\n", &science_pretty_format(per_change(&med_a,&med_b), 1)));
+    out.push_str(&format!(
+        "\n% Change: \t{}\n",
+        &science_pretty_format(per_change(&med_a, &med_b), 1)
+    ));
 
     out.push_str("\n************************************\n");
 
@@ -592,7 +624,7 @@ fn median(vec: &[f64]) -> f64 {
 }
 
 // Calculate Percent difference
-fn per_change (f: &f64, s: &f64) -> f64 {
+fn per_change(f: &f64, s: &f64) -> f64 {
     (s - f) / f.abs() * 100.0
 }
 
