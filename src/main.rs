@@ -513,8 +513,8 @@ fn calculate(p: &mut Parameters) {
 
 // Paired data
 fn paired_data(a_v: &[f64], b_v: &[f64], iterations: i32) -> Sdmeanresults {
-    let mut dmeans: Vec<f64> = Vec::new();
-    let mut dsds: Vec<f64> = Vec::new();
+    let mut diff_means: Vec<f64> = Vec::new();
+    let mut diff_sds: Vec<f64> = Vec::new();
     let mut tmp: Vec<f64> = Vec::new();
 
     let mut cvalues: Vec<f64> = Vec::new();
@@ -531,23 +531,23 @@ fn paired_data(a_v: &[f64], b_v: &[f64], iterations: i32) -> Sdmeanresults {
             tmp.push(cvalues[rand::thread_rng().gen_range(0..l)]);
         }
         let m: f64 = mean(&tmp);
-        dmeans.push(m);
-        dsds.push(sd_sample(&tmp, &m));
+        diff_means.push(m);
+        diff_sds.push(sd_sample(&tmp, &m));
     }
 
     Sdmeanresults {
-        mean: sd_sample(&dmeans, &mean(&dmeans)),
-        sd: sd_sample(&dsds, &mean(&dsds)),
+        mean: sd_sample(&diff_means, &mean(&diff_means)),
+        sd: sd_sample(&diff_sds, &mean(&diff_sds)),
     }
 }
 
 // Unpaired data
 fn unpaired_data(a_v: &[f64], b_v: &[f64], iterations: i32) -> Sdmeanresults {
-    let mut dmeans: Vec<f64> = Vec::new();
+    let mut diff_means: Vec<f64> = Vec::new();
     let mut ameans: Vec<f64> = Vec::new();
     let mut bmeans: Vec<f64> = Vec::new();
 
-    let mut dsds: Vec<f64> = Vec::new();
+    let mut diff_sds: Vec<f64> = Vec::new();
     let mut asds: Vec<f64> = Vec::new();
     let mut bsds: Vec<f64> = Vec::new();
 
@@ -577,13 +577,13 @@ fn unpaired_data(a_v: &[f64], b_v: &[f64], iterations: i32) -> Sdmeanresults {
     }
 
     for i in 0..iterations {
-        dmeans.push(bmeans[i as usize] - ameans[i as usize]);
-        dsds.push(bsds[i as usize] - asds[i as usize])
+        diff_means.push(bmeans[i as usize] - ameans[i as usize]);
+        diff_sds.push(bsds[i as usize] - asds[i as usize])
     }
 
     Sdmeanresults {
-        mean: sd_sample(&dmeans, &mean(&dmeans)),
-        sd: sd_sample(&dsds, &mean(&dsds)),
+        mean: sd_sample(&diff_means, &mean(&diff_means)),
+        sd: sd_sample(&diff_sds, &mean(&diff_sds)),
     }
 }
 
