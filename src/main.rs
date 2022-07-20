@@ -35,7 +35,7 @@ struct Sdmeanresults {
     bsl: f64,
     bsm: f64,
     dmu: f64,
-    dml: f64, 
+    dml: f64,
     dmm: f64,
     dsu: f64,
     dsl: f64,
@@ -183,7 +183,7 @@ fn calculate(p: &mut Parameters) {
     if !p.two_tailed.is_toggled() {
         clevel /= 2.0;
     }
-    
+
     // Check for paired or unpaired data
     if p.paired_data.is_checked() {
         // For paired data make sure both columns have the same number of elements
@@ -207,7 +207,7 @@ fn calculate(p: &mut Parameters) {
 
     let sdp_a = sd_pop(&a_v, &mean_a);
     let sdp_b = sd_pop(&b_v, &mean_b);
-    
+
     let sd_pooled = ((sd_a * sd_a + sd_b * sd_b) / 2.0).sqrt();
     let d = mean_d / sd_pooled;
     let sk_a = skewness(&a_v, &mean_a, &sd_a);
@@ -257,15 +257,8 @@ fn calculate(p: &mut Parameters) {
 
     out.push_str("\n************************************\n");
 
-    // Swap the upper and lower limits if the lower is bigger than the upper
-    let mut mu = sdmeanresults.dmu;
-    let mut ml = sdmeanresults.dml;
-
-    if ml > mu {
-        let a = ml;
-        ml = mu;
-        mu = a; 
-    }
+    let mu = sdmeanresults.dmu;
+    let ml = sdmeanresults.dml;
 
     // Handle one or two tailed data Mean
     if p.two_tailed.is_toggled() {
@@ -297,12 +290,18 @@ fn calculate(p: &mut Parameters) {
         ));
         out.push('\n');
 
-        out.push_str(&format!("CI Low Diff: \t{}\n", &science_pretty_format(ml, 6)));
+        out.push_str(&format!(
+            "CI Low Diff: \t{}\n",
+            &science_pretty_format(ml, 6)
+        ));
         out.push_str(&format!(
             "Mean Diff: \t{}\n",
             &science_pretty_format(mean_d, 6)
         ));
-        out.push_str(&format!("CI High Diff: \t{}\n", &science_pretty_format(mu, 6)));
+        out.push_str(&format!(
+            "CI High Diff: \t{}\n",
+            &science_pretty_format(mu, 6)
+        ));
         out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
 
         if ml <= 0.0 && mu >= 0.0 {
@@ -343,7 +342,10 @@ fn calculate(p: &mut Parameters) {
         out.push('\n');
 
         if mean_a > mean_b {
-            out.push_str(&format!("CI Low Diff: \t{}\n", &science_pretty_format(ml, 6)));
+            out.push_str(&format!(
+                "CI Low Diff: \t{}\n",
+                &science_pretty_format(ml, 6)
+            ));
             out.push_str(&format!(
                 "Mean Diff: \t{}\n",
                 &science_pretty_format(mean_d, 6)
@@ -359,7 +361,10 @@ fn calculate(p: &mut Parameters) {
                 "Mean Diff: \t{}\n",
                 &science_pretty_format(mean_d, 6)
             ));
-            out.push_str(&format!("CI High Diff: \t{}\n", &science_pretty_format(mu, 6)));
+            out.push_str(&format!(
+                "CI High Diff: \t{}\n",
+                &science_pretty_format(mu, 6)
+            ));
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if ml <= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
@@ -376,15 +381,8 @@ fn calculate(p: &mut Parameters) {
 
     out.push_str("\n************************************\n");
 
-    // Swap the upper and lower limits if the lower is bigger than the upper
-    let mut su = sdmeanresults.dsu;
-    let mut sl = sdmeanresults.dsl;
-
-    if sl > su {
-        let a = sl;
-        sl = su;
-        su = a; 
-    }
+    let su = sdmeanresults.dsu;
+    let sl = sdmeanresults.dsl;
 
     // Handle one or two tailed data SD
     if p.two_tailed.is_toggled() {
@@ -417,9 +415,15 @@ fn calculate(p: &mut Parameters) {
         ));
         out.push('\n');
 
-        out.push_str(&format!("CI Low Diff: \t{}\n", &science_pretty_format(sl, 6)));
+        out.push_str(&format!(
+            "CI Low Diff: \t{}\n",
+            &science_pretty_format(sl, 6)
+        ));
         out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
-        out.push_str(&format!("CI High Diff: \t{}\n", &science_pretty_format(su, 6)));
+        out.push_str(&format!(
+            "CI High Diff: \t{}\n",
+            &science_pretty_format(su, 6)
+        ));
         out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
 
         if sl <= 0.0 && su >= 0.0 {
@@ -460,7 +464,10 @@ fn calculate(p: &mut Parameters) {
         out.push('\n');
 
         if sd_a > sd_b {
-            out.push_str(&format!("CI Low Diff: \t{}\n", &science_pretty_format(sl, 6)));
+            out.push_str(&format!(
+                "CI Low Diff: \t{}\n",
+                &science_pretty_format(sl, 6)
+            ));
             out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if su >= 0.0 {
@@ -470,7 +477,10 @@ fn calculate(p: &mut Parameters) {
             }
         } else {
             out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
-            out.push_str(&format!("CI High Diff: \t{}\n", &science_pretty_format(su, 6)));
+            out.push_str(&format!(
+                "CI High Diff: \t{}\n",
+                &science_pretty_format(su, 6)
+            ));
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if sl <= 0.0 {
                 out.push_str("H0 = True \tA ≈ B\n");
@@ -629,7 +639,7 @@ fn paired_data(a_v: &[f64], b_v: &[f64], iterations: i32, clevel: f64) -> Sdmean
         cvalues.push(b_v[i as usize] - a_v[i as usize]);
     }
 
-    let c = ci(&cvalues,iterations,clevel);
+    let c = ci(&cvalues, iterations, clevel);
 
     Sdmeanresults {
         amu: a.mu,
@@ -643,15 +653,14 @@ fn paired_data(a_v: &[f64], b_v: &[f64], iterations: i32, clevel: f64) -> Sdmean
         bmm: b.mm,
         bsu: b.su,
         bsl: b.sl,
-        bsm: b.sm, 
+        bsm: b.sm,
         dmu: c.mu,
-        dml: c.ml, 
+        dml: c.ml,
         dmm: c.mm,
         dsu: c.su,
         dsl: c.sl,
         dsm: c.sm,
     }
-
 }
 
 // Unpaired data
@@ -671,15 +680,14 @@ fn unpaired_data(a_v: &[f64], b_v: &[f64], iterations: i32, clevel: f64) -> Sdme
         bmm: b.mm,
         bsu: b.su,
         bsl: b.sl,
-        bsm: b.sm, 
+        bsm: b.sm,
         dmu: b.mu - a.ml,
-        dml: b.ml - a.mu, 
+        dml: b.ml - a.mu,
         dmm: b.mm - a.mm,
         dsu: b.su - a.sl,
         dsl: b.sl - a.su,
         dsm: b.sm - a.sm,
     }
-
 }
 
 // Calculate a bootstrapped mean and confidence interval for an array of data
@@ -1095,7 +1103,7 @@ fn erf_inv(x: f64) -> f64 {
 }
 
 // Calculate Z from Confidence Level
-fn z_from_cl(cl: f64) -> f64 {
+fn _z_from_cl(cl: f64) -> f64 {
     erf_inv(cl) * f64::consts::SQRT_2
 }
 
