@@ -1,7 +1,7 @@
 #![windows_subsystem = "windows"]
 #![allow(clippy::many_single_char_names)]
 #![allow(clippy::manual_range_contains)]
-use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, text::*, window::*};
+use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, text::*, window::*, prelude::*};
 use rand::Rng;
 use std::cmp::Ordering;
 use std::f64;
@@ -85,8 +85,8 @@ fn main() {
     // Format and initialize our main input windows
     parameters.data_a.set_scrollbar_size(15);
     parameters.data_b.set_scrollbar_size(15);
-    parameters.data_a.set_cursor_style(TextCursor::Simple);
-    parameters.data_b.set_cursor_style(TextCursor::Simple);
+    parameters.data_a.set_cursor_style(Cursor::Simple);
+    parameters.data_b.set_cursor_style(Cursor::Simple);
     parameters.data_a.set_buffer(Some(buf_a));
     parameters.data_b.set_buffer(Some(buf_b));
     parameters.data_a.set_tab_nav(true);
@@ -111,11 +111,11 @@ fn main() {
 
     // Calculate button
     let mut calculate_button = Button::new(130, 450, 200, 57, "Calculate");
-    calculate_button.set_callback(move || calculate(&mut parameters));
+    calculate_button.set_callback(move |_| calculate(&mut parameters));
 
     // clear button
     let mut clear_button = Button::new(350, 450, 100, 57, "Clear");
-    clear_button.set_callback(move || clear(&mut p2));
+    clear_button.set_callback(move |_| clear(&mut p2));
 
     // Show the window
     wind.end();
@@ -133,7 +133,6 @@ fn clear(p: &mut Parameters) {
 
 // Handle Calculate button
 fn calculate(p: &mut Parameters) {
-    let sdmeanresults: Sdmeanresults;
 
     // Output String
     let mut out: String = String::from("");
@@ -178,23 +177,26 @@ fn calculate(p: &mut Parameters) {
         return;
     };
 
-    // Double Clevel for one tailed
+    // Convert to percentage
     let mut clevel: f64 = (100.0 - confidence) / 100.0;
+
+    // If it is a two tailed operation, divide the confidence level in half
     if !p.two_tailed.is_toggled() {
         clevel /= 2.0;
     }
 
     // Check for paired or unpaired data
-    if p.paired_data.is_checked() {
+    let sdmeanresults: Sdmeanresults = if p.paired_data.is_checked() {
+        
         // For paired data make sure both columns have the same number of elements
         if a_v.len() != b_v.len() {
             alert(368, 265, "Data Fields Must Have Same Count for Paired Data");
             return;
         }
 
-        sdmeanresults = paired_data(&a_v, &b_v, iterations, clevel);
+        paired_data(&a_v, &b_v, iterations, clevel)
     } else {
-        sdmeanresults = unpaired_data(&a_v, &b_v, iterations, clevel);
+        unpaired_data(&a_v, &b_v, iterations, clevel)
     };
 
     // Calculate stats for the data
