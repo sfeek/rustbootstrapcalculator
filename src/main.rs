@@ -57,7 +57,7 @@ fn main() {
     let app = App::default();
 
     // Main Window
-    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.10");
+    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.20");
 
     // Fill the form structure
     let mut parameters = Parameters {
@@ -622,6 +622,13 @@ fn calculate(p: &mut Parameters) {
             } else {
                 out.push_str("Sig:       \tNot Significant\n");
             }
+
+            out.push_str("\n************************************\n");
+
+            out.push_str(&format!(
+                "R²: \t{}\n",
+                &science_pretty_format(r2_value(a_v, b_v), 3)
+            ));
         }
     }
 
@@ -875,6 +882,27 @@ fn r_value(x: Vec<f64>, y: Vec<f64>) -> f64 {
     }
 
     xmx_ymy_sum / (xmx_sum * ymy_sum).sqrt()
+}
+
+// Calculate R^2 
+fn r2_value(x: Vec<f64>, y: Vec<f64>) -> f64 {
+    let mut xy_sum: f64 = 0.0;
+    let mut x_sum: f64 = 0.0;
+    let mut y_sum: f64 = 0.0;
+    let mut x2_sum: f64 = 0.0;
+    let mut y2_sum: f64 = 0.0;
+    let n = x.len() as f64;
+    
+    for i in 0..x.len() {
+        xy_sum += x[i] * y[i];
+        x_sum += x[i];
+        y_sum += y[i];
+        x2_sum += x[i] * x[i];
+        y2_sum += y[i] * y[i];
+    }
+
+    let r:f64 = (n*xy_sum - x_sum * y_sum)/((n*x2_sum - x_sum * x_sum)*(n*y2_sum - y_sum * y_sum)).sqrt();
+    r*r
 }
 
 // Calculate Log Gamma
