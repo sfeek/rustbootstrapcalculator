@@ -1,0 +1,10 @@
+D:\Source Code\rustbootstrapcalculator\target\release\build\fltk-sys-9f2f030c64daf67f\build_script_main-9f2f030c64daf67f.exe: C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build/main.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\android.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\bundled.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\link.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\source.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\utils.rs
+
+D:\Source Code\rustbootstrapcalculator\target\release\build\fltk-sys-9f2f030c64daf67f\build_script_main-9f2f030c64daf67f.d: C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build/main.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\android.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\bundled.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\link.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\source.rs C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\utils.rs
+
+C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build/main.rs:
+C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\android.rs:
+C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\bundled.rs:
+C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\link.rs:
+C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\source.rs:
+C:\Users\shane.feek\.cargo\registry\src\github.com-1ecc6299db9ec823\fltk-sys-1.3.11\build\utils.rs:
