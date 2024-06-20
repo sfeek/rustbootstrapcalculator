@@ -16,6 +16,7 @@ struct Parameters {
     one_tailed: RadioRoundButton,
     two_tailed: RadioRoundButton,
     cinterval: FloatInput,
+    zthresh: FloatInput,
     iterations: IntInput,
 }
 
@@ -43,6 +44,15 @@ struct Sdmeanresults {
 }
 
 #[derive(Clone, Debug)]
+// Define a struct for our Z Score Counts
+struct Zscoreresults {
+    pluscount: usize,
+    minuscount: usize,
+    pluspercent: f64,
+    minuspercent: f64,
+}
+
+#[derive(Clone, Debug)]
 // Define a struct for CI results
 struct CIresults {
     mu: f64,
@@ -57,7 +67,7 @@ fn main() {
     let app = App::default();
 
     // Main Window
-    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.20");
+    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.30");
 
     // Fill the form structure
     let mut parameters = Parameters {
@@ -66,8 +76,9 @@ fn main() {
         paired_data: CheckButton::new(556, 26, 105, 21, "Paired or Corr Data"),
         one_tailed: RadioRoundButton::new(558, 54, 99, 21, "One Tailed"),
         two_tailed: RadioRoundButton::new(558, 81, 99, 21, "Two Tailed"),
-        cinterval: FloatInput::new(558, 119, 54, 22, "CL"),
-        iterations: IntInput::new(558, 148, 54, 22, "Iterations"),
+        cinterval: FloatInput::new(558, 114, 54, 22, "CL"),
+        iterations: IntInput::new(558, 143, 54, 22, "Iterations"),
+        zthresh: FloatInput::new(558, 172, 54, 22, "Z Thresh"),
         output: TextDisplay::new(480, 200, 230, 300, ""),
     };
 
@@ -105,6 +116,7 @@ fn main() {
     parameters.two_tailed.toggle(true);
     parameters.cinterval.set_value("95");
     parameters.iterations.set_value("10");
+    parameters.zthresh.set_value("3.0");
 
     // Clone the parameters to use for the clear function
     let mut p2 = parameters.clone();
@@ -177,6 +189,15 @@ fn calculate(p: &mut Parameters) {
         return;
     };
 
+    // Get our Z Score Threshold
+    let zthresh: f64 = match p.zthresh.value().parse::<f64>() {
+        Ok(v) => v,
+        Err(_) => {
+            alert(368, 265, "Z Threshold Error");
+            return;
+        }
+    };
+    
     // Convert to percentage
     let mut clevel: f64 = (100.0 - confidence) / 100.0;
 
@@ -224,6 +245,7 @@ fn calculate(p: &mut Parameters) {
     let min_a = a_v.iter().copied().fold(f64::INFINITY, f64::min);
     let min_b = b_v.iter().copied().fold(f64::INFINITY, f64::min);
 
+
     if sd_a > sd_b {
         f = (sd_a * sd_a) / (sd_b * sd_b);
         f_a = a_v.len();
@@ -236,6 +258,9 @@ fn calculate(p: &mut Parameters) {
     }
 
     let f_p = p_from_f(f, f_a - 1, f_b - 1);
+
+    let zcount_a = zcount(&a_v,zthresh);
+    let zcount_b = zcount(&b_v,zthresh);
 
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
@@ -255,6 +280,27 @@ fn calculate(p: &mut Parameters) {
     out.push_str(&format!(
         "Max B:    \t{}\n",
         &science_pretty_format(max_b, 6)
+    ));
+
+    out.push_str(&format!(
+        "\n+Z Count A:    \t{}   {}%\n",
+        zcount_a.pluscount,
+        &science_pretty_format(zcount_a.pluspercent, 1),
+    ));
+    out.push_str(&format!(
+        "-Z Count A:    \t{}   {}%\n",
+        zcount_a.minuscount,
+        &science_pretty_format(zcount_a.minuspercent, 1),
+    ));
+    out.push_str(&format!(
+        "\n+Z Count B:    \t{}   {}%\n",
+        zcount_b.pluscount,
+        &science_pretty_format(zcount_b.pluspercent, 1),
+    ));
+    out.push_str(&format!(
+        "-Z Count B:    \t{}   {}%\n",
+        zcount_b.minuscount,
+        &science_pretty_format(zcount_b.minuspercent, 1),
     ));
 
     out.push_str("\n************************************\n");
@@ -1135,6 +1181,28 @@ fn erf_inv(x: f64) -> f64 {
 // Calculate Z from Confidence Level
 fn _z_from_cl(cl: f64) -> f64 {
     erf_inv(cl) * f64::consts::SQRT_2
+}
+
+fn zcount(x: &Vec<f64>, zth: f64) -> Zscoreresults {
+    let mean = mean(&x);
+    let sd = sd_pop(&x, &mean);
+    let mut zresults: Zscoreresults = Zscoreresults { pluscount: 0, minuscount: 0, pluspercent: 0.0, minuspercent: 0.0 }; 
+
+    for v in x {
+        let z = (v - mean) / sd;
+
+        if z >= zth.abs() {
+            zresults.pluscount += 1;
+        }
+        if z <= -zth.abs() {
+            zresults.minuscount += 1;
+        }
+    };
+
+    zresults.pluspercent = (zresults.pluscount as f64 / x.len() as f64) * 100.0;
+    zresults.minuspercent = (zresults.minuscount as f64 / x.len() as f64) * 100.0;
+
+    zresults
 }
 
 // Calculate P from Z
