@@ -1,7 +1,9 @@
 #![windows_subsystem = "windows"]
 #![allow(clippy::many_single_char_names)]
 #![allow(clippy::manual_range_contains)]
-use fltk::{app::*, button::*, dialog::*, frame::*, group::*, input::*, text::*, window::*, prelude::*};
+use fltk::{
+    app::*, button::*, dialog::*, frame::*, group::*, input::*, prelude::*, text::*, window::*,
+};
 use rand::Rng;
 use std::cmp::Ordering;
 use std::f64;
@@ -67,7 +69,7 @@ fn main() {
     let app = App::default();
 
     // Main Window
-    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.30");
+    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.40");
 
     // Fill the form structure
     let mut parameters = Parameters {
@@ -145,7 +147,6 @@ fn clear(p: &mut Parameters) {
 
 // Handle Calculate button
 fn calculate(p: &mut Parameters) {
-
     // Output String
     let mut out: String = String::from("");
 
@@ -197,7 +198,7 @@ fn calculate(p: &mut Parameters) {
             return;
         }
     };
-    
+
     // Convert to percentage
     let mut clevel: f64 = (100.0 - confidence) / 100.0;
 
@@ -208,7 +209,6 @@ fn calculate(p: &mut Parameters) {
 
     // Check for paired or unpaired data
     let sdmeanresults: Sdmeanresults = if p.paired_data.is_checked() {
-        
         // For paired data make sure both columns have the same number of elements
         if a_v.len() != b_v.len() {
             alert(368, 265, "Data Fields Must Have Same Count for Paired Data");
@@ -245,7 +245,6 @@ fn calculate(p: &mut Parameters) {
     let min_a = a_v.iter().copied().fold(f64::INFINITY, f64::min);
     let min_b = b_v.iter().copied().fold(f64::INFINITY, f64::min);
 
-
     if sd_a > sd_b {
         f = (sd_a * sd_a) / (sd_b * sd_b);
         f_a = a_v.len();
@@ -259,8 +258,8 @@ fn calculate(p: &mut Parameters) {
 
     let f_p = p_from_f(f, f_a - 1, f_b - 1);
 
-    let zcount_a = zcount(&a_v,zthresh);
-    let zcount_b = zcount(&b_v,zthresh);
+    let zcount_a = zcount(&a_v, zthresh);
+    let zcount_b = zcount(&b_v, zthresh);
 
     out.push_str(&format!("Count A: \t{}\n", a_v.len()));
     out.push_str(&format!("Count B: \t{}\n", b_v.len()));
@@ -673,11 +672,38 @@ fn calculate(p: &mut Parameters) {
 
             out.push_str(&format!(
                 "R²: \t{}\n",
-                &science_pretty_format(r2_value(a_v, b_v), 3)
+                &science_pretty_format(r2_value(&a_v, &b_v), 3)
             ));
+
+            out.push_str("\n************************************\n");
         }
     }
 
+    // Find and count unique values
+    out.push_str("Unique A Value Counts\n\n");
+
+    let (top_values_a, top_counts_a) = count_unique_values(&a_v);
+    let (top_values_b, top_counts_b) = count_unique_values(&b_v);
+
+    for (i, _) in top_values_a.iter().enumerate() {
+        out.push_str(&format!(
+            "{} , {}\n",
+            &science_pretty_format(top_values_a[i], 6),
+            top_counts_a[i]
+        ));
+    }
+
+    out.push_str("\n\nUnique B Value Counts\n\n");
+
+    for (i, _) in top_values_b.iter().enumerate() {
+        out.push_str(&format!(
+            "{} , {}\n",
+            &science_pretty_format(top_values_b[i], 6),
+            top_counts_b[i]
+        ));
+    }
+
+    // Send out to the main text box
     p.output.buffer().unwrap().set_text(&out);
 }
 
@@ -812,6 +838,35 @@ fn median(vec: &[f64]) -> f64 {
     v[vec.len() / 2]
 }
 
+// Find uniques and count them
+fn count_unique_values(vec: &[f64]) -> (Vec<f64>, Vec<i32>) {
+    let mut v = vec.to_owned();
+    let mut pv: f64;
+    let mut count: i32;
+    let mut values_out: Vec<f64> = Vec::new();
+    let mut counts_out: Vec<i32> = Vec::new();
+
+    v.sort_by(cmp_f64);
+
+    count = 0;
+    pv = v[0];
+
+    for cv in v {
+        if cv == pv {
+            count += 1;
+        } else {
+            values_out.push(pv);
+            counts_out.push(count);
+            pv = cv;
+            count = 1;
+        }
+    }
+    values_out.push(pv);
+    counts_out.push(count);
+
+    return (values_out, counts_out);
+}
+
 // Calculate Percent difference
 fn per_change(f: &f64, s: &f64) -> f64 {
     (s - f) / f.abs() * 100.0
@@ -930,15 +985,15 @@ fn r_value(x: Vec<f64>, y: Vec<f64>) -> f64 {
     xmx_ymy_sum / (xmx_sum * ymy_sum).sqrt()
 }
 
-// Calculate R^2 
-fn r2_value(x: Vec<f64>, y: Vec<f64>) -> f64 {
+// Calculate R^2
+fn r2_value(x: &Vec<f64>, y: &Vec<f64>) -> f64 {
     let mut xy_sum: f64 = 0.0;
     let mut x_sum: f64 = 0.0;
     let mut y_sum: f64 = 0.0;
     let mut x2_sum: f64 = 0.0;
     let mut y2_sum: f64 = 0.0;
     let n = x.len() as f64;
-    
+
     for i in 0..x.len() {
         xy_sum += x[i] * y[i];
         x_sum += x[i];
@@ -947,8 +1002,9 @@ fn r2_value(x: Vec<f64>, y: Vec<f64>) -> f64 {
         y2_sum += y[i] * y[i];
     }
 
-    let r:f64 = (n*xy_sum - x_sum * y_sum)/((n*x2_sum - x_sum * x_sum)*(n*y2_sum - y_sum * y_sum)).sqrt();
-    r*r
+    let r: f64 = (n * xy_sum - x_sum * y_sum)
+        / ((n * x2_sum - x_sum * x_sum) * (n * y2_sum - y_sum * y_sum)).sqrt();
+    r * r
 }
 
 // Calculate Log Gamma
@@ -1186,7 +1242,12 @@ fn _z_from_cl(cl: f64) -> f64 {
 fn zcount(x: &Vec<f64>, zth: f64) -> Zscoreresults {
     let mean = mean(&x);
     let sd = sd_pop(&x, &mean);
-    let mut zresults: Zscoreresults = Zscoreresults { pluscount: 0, minuscount: 0, pluspercent: 0.0, minuspercent: 0.0 }; 
+    let mut zresults: Zscoreresults = Zscoreresults {
+        pluscount: 0,
+        minuscount: 0,
+        pluspercent: 0.0,
+        minuspercent: 0.0,
+    };
 
     for v in x {
         let z = (v - mean) / sd;
@@ -1197,7 +1258,7 @@ fn zcount(x: &Vec<f64>, zth: f64) -> Zscoreresults {
         if z <= -zth.abs() {
             zresults.minuscount += 1;
         }
-    };
+    }
 
     zresults.pluspercent = (zresults.pluscount as f64 / x.len() as f64) * 100.0;
     zresults.minuspercent = (zresults.minuscount as f64 / x.len() as f64) * 100.0;
