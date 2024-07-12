@@ -687,7 +687,7 @@ fn calculate(p: &mut Parameters) {
 
     for (i, _) in top_values_a.iter().enumerate() {
         out.push_str(&format!(
-            "{} , {}\n",
+            "{}\t{}\n",
             &science_pretty_format(top_values_a[i], 6),
             top_counts_a[i]
         ));
@@ -697,7 +697,7 @@ fn calculate(p: &mut Parameters) {
 
     for (i, _) in top_values_b.iter().enumerate() {
         out.push_str(&format!(
-            "{} , {}\n",
+            "{}\t{}\n",
             &science_pretty_format(top_values_b[i], 6),
             top_counts_b[i]
         ));
