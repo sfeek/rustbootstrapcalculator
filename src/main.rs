@@ -69,7 +69,7 @@ fn main() {
     let app = App::default();
 
     // Main Window
-    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.40");
+    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.50");
 
     // Fill the form structure
     let mut parameters = Parameters {
@@ -351,7 +351,7 @@ fn calculate(p: &mut Parameters) {
         ));
         out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
 
-        if ml <= 0.0 && mu >= 0.0 {
+        if pv > clevel {
             out.push_str("H0 = True \tA ≈ B\n");
         } else if mean_a > mean_b {
             out.push_str("H0 = False \tA > B\n");
@@ -398,7 +398,7 @@ fn calculate(p: &mut Parameters) {
                 &science_pretty_format(mean_d, 6)
             ));
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
-            if mu >= 0.0 {
+            if pv > clevel {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
                 out.push_str("H0 = False \tA > B\n");
@@ -413,7 +413,7 @@ fn calculate(p: &mut Parameters) {
                 &science_pretty_format(mu, 6)
             ));
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
-            if ml <= 0.0 {
+            if pv > clevel {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
                 out.push_str("H0 = False \tA < B\n");
@@ -473,7 +473,7 @@ fn calculate(p: &mut Parameters) {
         ));
         out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
 
-        if sl <= 0.0 && su >= 0.0 {
+        if pv > clevel {
             out.push_str("H0 = True \tA ≈ B\n");
         } else if sd_a > sd_b {
             out.push_str("H0 = False \tA > B\n");
@@ -517,7 +517,7 @@ fn calculate(p: &mut Parameters) {
             ));
             out.push_str(&format!("SD Diff: \t{}\n", &science_pretty_format(sd_d, 6)));
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
-            if su >= 0.0 {
+            if pv > clevel {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
                 out.push_str("H0 = False \tA > B\n");
@@ -529,7 +529,7 @@ fn calculate(p: &mut Parameters) {
                 &science_pretty_format(su, 6)
             ));
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
-            if sl <= 0.0 {
+            if pv > clevel {
                 out.push_str("H0 = True \tA ≈ B\n");
             } else {
                 out.push_str("H0 = False \tA < B\n");
