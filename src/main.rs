@@ -586,7 +586,6 @@ fn calculate(p: &mut Parameters) {
     let mut biggest_value_b: f64 = 0.0;
 
     for (i, _) in top_values_a.iter().enumerate() {
-
         if top_counts_a[i] > biggest_count_a {
             biggest_count_a = top_counts_a[i];
             biggest_value_a = top_values_a[i];
@@ -594,24 +593,30 @@ fn calculate(p: &mut Parameters) {
     }
 
     for (i, _) in top_values_b.iter().enumerate() {
-
         if top_counts_b[i] > biggest_count_b {
             biggest_count_b = top_counts_b[i];
             biggest_value_b = top_values_b[i];
         }
     }
 
-    out.push_str(&format!(
-        "Mode A:    \t{}\n",
-        &science_pretty_format(biggest_value_a, 6)
-    ));
+    if biggest_count_a > 1 {
+        out.push_str(&format!(
+            "Mode A:    \t{}\n",
+            &science_pretty_format(biggest_value_a, 6)
+        ));
+    } else {
+        out.push_str("Mode A:    \tNONE\n");
+    }
 
-    out.push_str(&format!(
-        "Mode B:    \t{}\n",
-        &science_pretty_format(biggest_value_b, 6)
-    ));
+    if biggest_count_b > 1 {
+        out.push_str(&format!(
+            "Mode B:    \t{}\n",
+            &science_pretty_format(biggest_value_b, 6)
+        ));
+    } else {
+        out.push_str("Mode B:    \tNONE\n");
+    }
 
- 
     out.push_str("\n************************************\n");
 
     out.push_str(&format!("Cohen's d: \t{}\n", &science_pretty_format(d, 2)));
@@ -717,8 +722,6 @@ fn calculate(p: &mut Parameters) {
 
     // Find and count unique values
     out.push_str("Unique A Value Counts\n\n");
-
-    
 
     for (i, _) in top_values_a.iter().enumerate() {
         out.push_str(&format!(
