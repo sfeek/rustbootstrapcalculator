@@ -69,7 +69,7 @@ fn main() {
     let app = App::default();
 
     // Main Window
-    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.50");
+    let mut wind = Window::new(100, 100, 737, 530, "Bootstrap Statistics Calculator v3.55");
 
     // Fill the form structure
     let mut parameters = Parameters {
@@ -244,6 +244,8 @@ fn calculate(p: &mut Parameters) {
     let max_b = b_v.iter().copied().fold(f64::NEG_INFINITY, f64::max);
     let min_a = a_v.iter().copied().fold(f64::INFINITY, f64::min);
     let min_b = b_v.iter().copied().fold(f64::INFINITY, f64::min);
+    let (top_values_a, top_counts_a) = count_unique_values(&a_v);
+    let (top_values_b, top_counts_b) = count_unique_values(&b_v);
 
     if sd_a > sd_b {
         f = (sd_a * sd_a) / (sd_b * sd_b);
@@ -578,6 +580,40 @@ fn calculate(p: &mut Parameters) {
 
     out.push_str("\n************************************\n");
 
+    let mut biggest_count_a = 0;
+    let mut biggest_count_b = 0;
+    let mut biggest_value_a: f64 = 0.0;
+    let mut biggest_value_b: f64 = 0.0;
+
+    for (i, _) in top_values_a.iter().enumerate() {
+
+        if top_counts_a[i] > biggest_count_a {
+            biggest_count_a = top_counts_a[i];
+            biggest_value_a = top_values_a[i];
+        }
+    }
+
+    for (i, _) in top_values_b.iter().enumerate() {
+
+        if top_counts_b[i] > biggest_count_b {
+            biggest_count_b = top_counts_b[i];
+            biggest_value_b = top_values_b[i];
+        }
+    }
+
+    out.push_str(&format!(
+        "Mode A:    \t{}\n",
+        &science_pretty_format(biggest_value_a, 6)
+    ));
+
+    out.push_str(&format!(
+        "Mode B:    \t{}\n",
+        &science_pretty_format(biggest_value_b, 6)
+    ));
+
+ 
+    out.push_str("\n************************************\n");
+
     out.push_str(&format!("Cohen's d: \t{}\n", &science_pretty_format(d, 2)));
 
     out.push_str("\n************************************\n");
@@ -682,8 +718,7 @@ fn calculate(p: &mut Parameters) {
     // Find and count unique values
     out.push_str("Unique A Value Counts\n\n");
 
-    let (top_values_a, top_counts_a) = count_unique_values(&a_v);
-    let (top_values_b, top_counts_b) = count_unique_values(&b_v);
+    
 
     for (i, _) in top_values_a.iter().enumerate() {
         out.push_str(&format!(
