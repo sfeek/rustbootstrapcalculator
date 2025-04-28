@@ -1373,10 +1373,10 @@ fn p_from_z(z: f64) -> f64 {
 // Pretty Format Scientific Numbers
 fn science_pretty_format(value: f64, digits: usize) -> String {
     if value.abs() == 0.0 {
-        "0".to_string();
+        return "0".to_string();
     }
     if value.abs() >= 10000.0 || value.abs() < 0.001 {
-        format!("{:.*e}", digits, value);
+        return format!("{:.*e}", digits, value);
     }
     format!("{:.*}", digits, value)
         .trim_end_matches(|c| c == '0')
