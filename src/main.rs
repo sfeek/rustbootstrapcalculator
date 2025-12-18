@@ -354,7 +354,7 @@ fn calculate(p: &mut Parameters) {
         out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
         if pv > 0.0 {
             out.push_str(&format!(
-                "\nOdds: \t1:{}\n",
+                "\nOdds: \t\t1:{}\n",
                 &science_pretty_format(1.0 / pv, 3)
             ));
         }
@@ -408,7 +408,7 @@ fn calculate(p: &mut Parameters) {
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if pv > 0.0 {
                 out.push_str(&format!(
-                    "\nOdds: \t1:{}\n",
+                    "\nOdds: \t\t1:{}\n",
                     &science_pretty_format(1.0 / pv, 3)
                 ));
             }
@@ -430,7 +430,7 @@ fn calculate(p: &mut Parameters) {
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if pv > 0.0 {
                 out.push_str(&format!(
-                    "\nOdds: \t1:{}\n",
+                    "\nOdds: \t\t1:{}\n",
                     &science_pretty_format(1.0 / pv, 3)
                 ));
             }
@@ -496,7 +496,7 @@ fn calculate(p: &mut Parameters) {
         out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
         if pv > 0.0 {
             out.push_str(&format!(
-                "\nOdds: \t1:{}\n",
+                "\nOdds: \t\t1:{}\n",
                 &science_pretty_format(1.0 / pv, 3)
             ));
         }
@@ -547,7 +547,7 @@ fn calculate(p: &mut Parameters) {
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if pv > 0.0 {
                 out.push_str(&format!(
-                    "\nOdds: \t1:{}\n",
+                    "\nOdds: \t\t1:{}\n",
                     &science_pretty_format(1.0 / pv, 3)
                 ));
             }
@@ -566,7 +566,7 @@ fn calculate(p: &mut Parameters) {
             out.push_str(&format!("\np-Value: \t{}\n", &science_pretty_format(pv, 3)));
             if pv > 0.0 {
                 out.push_str(&format!(
-                    "\nOdds: \t1:{}\n",
+                    "\nOdds: \t\t1:{}\n",
                     &science_pretty_format(1.0 / pv, 3)
                 ));
             }
